@@ -17,6 +17,7 @@ urlpatterns = [
     path('student-login/',views.student_login),
     path('student-enroll-course/',views.StudentEnrollCourseList.as_view()),
     path('fatch-enroll-status/<int:student_id>/<int:course_id>',views.fatch_enroll_status),
+    path('fatch-all-enrolled-students/<int:teacher_id>',views.EnrollStudentList.as_view()),
     path('fatch-enrolled-students/<int:course_id>',views.EnrollStudentList.as_view()),
     path('course-rating/',views.CourseRatingList.as_view()),
 
