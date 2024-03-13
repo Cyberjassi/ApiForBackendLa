@@ -108,7 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-#token authentication setting-
+# token authentication setting-
 # REST_FRAMEWORK={
 #     'DEFAULT_AUTHENTICATION_CLASSES':[
 #         'rest_framework.authentication.TokenAuthentication',
