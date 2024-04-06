@@ -11,5 +11,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/',include('main.urls')),
     #it is responstible for give login functionality in our rest_framework page
-    path('api-auth/',include('rest_framework.urls'))
+    # path('api-auth/',include('rest_framework.urls'))
 ]+static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

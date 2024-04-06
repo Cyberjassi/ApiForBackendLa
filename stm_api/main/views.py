@@ -14,7 +14,7 @@ class TeacherList(generics.ListCreateAPIView):
    queryset=models.Teacher.objects.all()
    serializer_class=TecherSerializer
    #withour authenticate we can'nt able to see and do operations
-   permission_classes = [permissions.IsAuthenticated]
+   # permission_classes = [permissions.IsAuthenticated]
 
 class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
    queryset=models.Teacher.objects.all()
@@ -54,17 +54,22 @@ class TeacherCourseDetail(generics.RetrieveUpdateDestroyAPIView):
    
 
 @csrf_exempt
+# it responsible for handle frontened request means if login information is match then it response True otherwise False
 def teacher_login(request):
-    email=request.POST['email']
-    password=request.POST['password']
-    try:
-        teacherData = models.Teacher.objects.get(email=email,password=password)
-    except models.Teacher.DoesNotExist:
-       teacherData=None
-    if teacherData:
-       return JsonResponse({'bool':True,'teacher_id':teacherData.id})
+   
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        # Filter teachers with matching email and password
+        teacher_data = models.Teacher.objects.filter(email=email, password=password).first()
+
+        if teacher_data:
+            return JsonResponse({'bool': True})
+        else:
+            return JsonResponse({'bool': False})
     else:
-       return JsonResponse({'bool':False})
+        return JsonResponse({'error': 'Only POST requests are allowed.'})
    
 # class ChapterList(generics.ListCreateAPIView):
 #    queryset = models.Chapter.objects.all()
