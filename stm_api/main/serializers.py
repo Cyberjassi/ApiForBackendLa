@@ -4,9 +4,20 @@ from rest_framework import serializers
 class TecherSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Teacher
-        fields =  ['id','detail','full_name','email','password','qualification','mobile_no','skills','teacher_courses','skill_list']
+        fields =  ['id','full_name','email','password','qualification','mobile_no','skills','profile_img','teacher_courses','skill_list']
         # depth 1 for teacher_courses
-        depth=1
+    def __init__(self,*args, **kwargs):
+       super(TecherSerializer,self).__init__(*args,**kwargs)
+       request = self.context.get('request')
+       self.Meta.depth = 0
+       if request and request.method == 'GET':
+           self.Meta.depth = 1
+
+
+class TeacherDashboardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Teacher
+        fields = ['total_teacher_courses','total_teacher_students','total_teacher_chapters']
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,18 +25,23 @@ class CategorySerializer(serializers.ModelSerializer):
         fields =  ['id','title','description']
 
 class CourseSerializer(serializers.ModelSerializer):
+
+
     class Meta:
         model = models.Course
-        #course chapter in chapter foreign key (coursse) we define realted name course chapter then it give us chapter according to course
-        #######related_videos
-        fields =  ['id','category','teacher','title','description','featured_img','techs','course_chapter','related_videos','tech_list','total_enrolled_student','course_rating']
-        # depth 1 menas it go in this model and fatch also his parent data 
-        depth = 1
+        fields = ['id', 'category', 'teacher', 'title', 'description', 'featured_img', 'techs', 'course_chapter', 'related_videos', 'tech_list', 'total_enrolled_student', 'course_rating']
+    
+    def __init__(self,*args,**kwargs):
+        super(CourseSerializer,self).__init__(*args,**kwargs)
+        request = self.context.get('request')
+        self.Meta.depth=0
+        if request and request.method == 'GET':
+            self.Meta.depth = 1
 
 class ChapterSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Chapter
-        fields = ['id','course','title','description','video','chapter_duration','remarks']
+        fields = ['id','course','title','description','video','remarks']
 
     def __init__(self,*args,**kwargs):
         super(ChapterSerializer,self).__init__(*args,**kwargs)
@@ -40,11 +56,33 @@ class StudentSerializer(serializers.ModelSerializer):
         model = models.Student
         fields =  ['id','full_name','email','password','username','interested_categories']
 
-class CourseEnrollSerializer(serializers.ModelSerializer):
+# class CourseEnrollSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = models.StudentCourseEnrollment
+#         fields =  ['id','course','student','enrolled_time']
+class StudentCourseEnrollSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.StudentCourseEnrollment
         fields =  ['id','course','student','enrolled_time']
+    
+    def __init__(self, *args,  **kwargs):
+        super(StudentCourseEnrollSerializer,self).__init__(*args,**kwargs)
+        request = self.context.get('request')
+        self.Meta.depth = 0
+        if request and request.method == 'GET':
+            self.Meta.depth = 1
 
+
+class StudentFavoriteCourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.StudentFavoriteCourse
+        fields=['id','course','student','status']
+    def __init__(self, *args, **kwargs):
+        super(StudentFavoriteCourseSerializer,self).__init__(*args,**kwargs)
+        request = self.context.get('request')
+        self.Meta.depth = 0
+        if request and request.method == 'GET':
+            self.Meta.depth=2
 
 class CourseRatingSerializer(serializers.ModelSerializer):
     class Meta:

@@ -5,10 +5,14 @@ from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.views import APIView
 from . import models
-from .serializers import TecherSerializer,CategorySerializer,StudentSerializer,CourseSerializer,ChapterSerializer,CourseEnrollSerializer,CourseRatingSerializer
+from .serializers import TecherSerializer,CategorySerializer,StudentSerializer,CourseSerializer,ChapterSerializer,StudentCourseEnrollSerializer,CourseRatingSerializer,TeacherDashboardSerializer,StudentFavoriteCourseSerializer
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import permissions
+
+from rest_framework import status
+from django.db.models import Q
+
 
 class TeacherList(generics.ListCreateAPIView):
    queryset=models.Teacher.objects.all()
@@ -19,18 +23,50 @@ class TeacherList(generics.ListCreateAPIView):
 class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
    queryset=models.Teacher.objects.all()
    serializer_class=TecherSerializer
-   permission_classes = [permissions.IsAuthenticated]
+   # permission_classes = [permissions.IsAuthenticated]
+
+
+class TeacherDashboard(generics.RetrieveAPIView):
+   queryset = models.Teacher.objects.all()
+   serializer_class=TeacherDashboardSerializer
 
 
 class CategoryList(generics.ListCreateAPIView):
    queryset=models.CourseCategory.objects.all()
-   serializer_class=CourseSerializer
-   permission_classes = [permissions.IsAuthenticated]
+   serializer_class=CategorySerializer
+   # permission_classes = [permissions.IsAuthenticated]
 
 class CourseList(generics.ListCreateAPIView):
-   queryset=models.Course.objects.all()
-   serializer_class=CourseSerializer
-   permission_classes = [permissions.IsAuthenticated]
+    queryset = models.Course.objects.all()
+    serializer_class = CourseSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if 'result' in self.request.GET:
+            limit = int(self.request.GET['result'])
+            qs = models.Course.objects.all().order_by('-id')[:limit]
+
+        elif 'category' in self.request.GET:
+            category = self.request.GET['category']
+            qs = models.Course.objects.filter(tech__icontains=category)
+
+        elif 'skill_name' in self.request.GET and 'teacher' in self.request.GET:
+            skill_name = self.request.GET['skill_name']
+            teacher = self.request.GET['teacher']
+            teacher = models.Teacher.objects.filter(id=teacher).first()
+            qs = models.Course.objects.filter(techs__icontains=skill_name, teacher=teacher)
+
+        elif 'studentId' in self.kwargs:
+            student_id = self.kwargs['studentId']
+            student = models.Student.objects.get(pk=student_id)
+            queries = [Q(techs__icontains=value) for value in student.interested_categories]
+            query = queries.pop()
+            for item in queries:
+                query |= item
+            qs = models.Course.objects.filter(query)
+
+        return qs
+   # permission_classes = [permissions.IsAuthenticated]
 
 
 #specific techer course-
@@ -114,7 +150,39 @@ def student_login(request):
     
 class StudentEnrollCourseList(generics.ListCreateAPIView):
    queryset=models.StudentCourseEnrollment.objects.all()
-   serializer_class=CourseEnrollSerializer
+   serializer_class=StudentCourseEnrollSerializer
+
+
+class StudentFavoriteCourseList(generics.ListCreateAPIView):
+   queryset = models.StudentFavoriteCourse.objects.all()
+   serializer_class = StudentFavoriteCourseSerializer
+
+def fatch_enroll_status(request,student_id,course_id):
+   student = models.Student.objects.filter(id=student_id).first()
+   course = models.Course.objects.filter(id=course_id).first()
+   enrollStatus = models.StudentCourseEnrollment.objects.filter(course=course,student=student).count()
+   if  enrollStatus:
+      return JsonResponse({'bool':True})
+   else:
+      return JsonResponse({'bool':False})
+   
+def fatch_favorite_status(request,student_id,course_id):
+   student=models.Student.objects.filter(id=student_id).first()
+   course=models.Course.objects.filter(id=course_id).first()
+   favoriteStatus=models.StudentFavoriteCourse.objects.filter(course=course,student=student).first()
+   if favoriteStatus and favoriteStatus.status == True:
+      return JsonResponse({'bool':True})
+   else:
+      return JsonResponse({'bool':False})
+   
+def fatch_favorite_status(request,student_id,course_id):
+   student=models.Student.objects.filter(id=student_id).first()
+   course=models.Course.objects.filter(id=course_id).first()
+   favoriteStatus=models.StudentFavoriteCourse.objects.filter(course=course,student=student).first()
+   if favoriteStatus and favoriteStatus.status == True:
+      return JsonResponse({'bool':True})
+   else:
+      return JsonResponse({'bool':False})
   
 @csrf_exempt
 def fatch_enroll_status(request,student_id,course_id):
@@ -127,19 +195,19 @@ def fatch_enroll_status(request,student_id,course_id):
        return JsonResponse({'bool':False})
     
 @csrf_exempt
-def fatch_enrolled_students(request,student_id,course_id):
+def remove_favorite_course(request,student_id,course_id):
     student = models.Student.objects.filter(id=student_id).first()
     course = models.Course.objects.filter(id=course_id).first()
-    enrollStatus=models.StudentCourseEnrollment.objects.filter(course=course,student=student).count()
-    if enrollStatus:
+    favoriteStatus=models.StudentFavoriteCourse.objects.filter(course=course,student=student).delete()
+    if favoriteStatus:
        return JsonResponse({'bool':True})
     else:
        return JsonResponse({'bool':False})
     
 
-class EnrollStudentList(generics.ListCreateAPIView):
+class EnrolledStudentList(generics.ListCreateAPIView):
    queryset=models.StudentCourseEnrollment.objects.all()
-   serializer_class=CourseEnrollSerializer
+   serializer_class=StudentCourseEnrollSerializer
 
    def get_queryset(self):
     if 'course_id' in self.kwargs:   
@@ -150,7 +218,12 @@ class EnrollStudentList(generics.ListCreateAPIView):
        teacher_id=self.kwargs['teacher_id']
        teacher = models.Teacher.objects.get(pk=teacher_id)
        return models.StudentCourseEnrollment.objects.filter(course__teacher=teacher).distinct()
-   
+    elif 'student_id' in self.kwargs: 
+       student_id=self.kwargs['student_id']
+       student = models.Student.objects.get(pk=student_id)
+       return models.StudentCourseEnrollment.objects.filter(student=student).distinct()
+    
+  
 
 class CourseRatingList(generics.ListCreateAPIView):
    queryset=models.CourseRating.objects.all()
@@ -162,6 +235,21 @@ def fatch_rating_status(request,student_id,course_id):
     course = models.Course.objects.filter(id=course_id).first()
     ratingStatus=models.CourseRating.objects.filter(course=course,student=student).count()
     if ratingStatus:
+       return JsonResponse({'bool':True})
+    else:
+       return JsonResponse({'bool':False})
+    
+
+@csrf_exempt
+def teacher_change_password(request,teacher_id):
+ 
+    password=request.POST['password']
+    try:
+        teacherData = models.Teacher.objects.get(id=teacher_id)
+    except models.Teacher.DoesNotExist:
+       teacherData=None
+    if teacherData:
+       models.Teacher.objects.filter(id=teacher_id).update(password=password)
        return JsonResponse({'bool':True})
     else:
        return JsonResponse({'bool':False})

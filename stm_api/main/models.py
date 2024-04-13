@@ -2,12 +2,13 @@ from django.db import models
 from django.core import serializers
 
 class Teacher(models.Model):
+    id = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=100)
-    detail=models.TextField(null=True)
     email = models.CharField(max_length=100)
     password=models.CharField(max_length=100)
     qualification=models.CharField(max_length=100)
     mobile_no = models.CharField(max_length=20)
+    profile_img=models.ImageField(upload_to='teahcer_profile_imgs/',null=True)
     skills=models.TextField()
 
     #for shows in panel Table name
@@ -20,20 +21,39 @@ class Teacher(models.Model):
     def skill_list(self):
         skill_list=self.skills.split(',')
         return skill_list
+    
+    def total_teacher_courses(self):
+        total_courses = Course.objects.filter(teacher=self).count()
+        return total_courses
+    
+    def total_teacher_chapters(self):
+        total_chapters = Chapter.objects.filter(course__teacher=self).count()
+        return total_chapters
+    
+    def total_teacher_students(self):
+        total_students = StudentCourseEnrollment.objects.filter(course__teacher=self).count()
+        return total_students
+    
+
 
 class CourseCategory(models.Model):
+    id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=150)
     description=models.TextField()
+
 
     class Meta:
         verbose_name_plural = "2. Course Categories"
     
+    # that is show on CourseCategory data when we put the data
     def __str__(self) -> str:
         return self.title
+    
 
 class Course(models.Model):
+    id = models.AutoField(primary_key=True)
     category = models.ForeignKey(CourseCategory,on_delete=models.CASCADE)
-    #related name fatch all the courses which teacher have
+    #related name fatch all the courses which teacher have through id 
     teacher=models.ForeignKey(Teacher,on_delete=models.CASCADE,related_name='teacher_courses')
     title=models.CharField(max_length=150)
     description=models.TextField()
@@ -42,6 +62,7 @@ class Course(models.Model):
     
     class Meta:
         verbose_name_plural = "3. Course"
+
     
     def __str__(self) -> str:
         return self.title
@@ -66,6 +87,8 @@ class Course(models.Model):
     
 
 class Chapter(models.Model):
+    id = models.AutoField(primary_key=True)
+    # realted name paraticular course have particular chapter
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="course_chapter")
     title=models.CharField(max_length=150)
     description=models.TextField()
@@ -82,6 +105,7 @@ class Chapter(models.Model):
 
 
 class Student(models.Model):
+    id = models.AutoField(primary_key=True)
     full_name=models.CharField(max_length=100)
     email = models.CharField(max_length=100)
     password=models.CharField(max_length=100)
@@ -94,13 +118,25 @@ class Student(models.Model):
         return self.full_name
 
 class StudentCourseEnrollment(models.Model):
+    id = models.AutoField(primary_key=True)
     student =models.ForeignKey(Student,on_delete=models.CASCADE,related_name='enrolled_student')
     course =models.ForeignKey(Course,on_delete=models.CASCADE,related_name='enrolled_courses')
     enrolled_time=models.DateTimeField(auto_now_add=True)
-    depth = 1
+    # depth = 1
 
     class Meta:
         verbose_name_plural = "6. Enrolled Courses"
+
+    def __str__(self) -> str:
+        return f"{self.course}-{self.student}"
+    
+class StudentFavoriteCourse(models.Model):
+    course = models.ForeignKey(Course,on_delete=models.CASCADE)
+    student=models.ForeignKey(Student,on_delete=models.CASCADE)
+    status=models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = '7. Student Favorite Courses'
 
     def __str__(self) -> str:
         return f"{self.course}-{self.student}"
@@ -118,3 +154,5 @@ class CourseRating(models.Model):
     
     class Meta:
         verbose_name_plural = "7. Course Ratings"
+
+
