@@ -36,7 +36,7 @@ class CourseSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         self.Meta.depth=0
         if request and request.method == 'GET':
-            self.Meta.depth = 1
+            self.Meta.depth = 2
 
 class ChapterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -54,7 +54,7 @@ class ChapterSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Student
-        fields =  ['id','full_name','email','password','username','interested_categories']
+        fields =  ['id','full_name','email','profile_img','password','username','interested_categories']
 
 # class CourseEnrollSerializer(serializers.ModelSerializer):
 #     class Meta:
@@ -63,7 +63,7 @@ class StudentSerializer(serializers.ModelSerializer):
 class StudentCourseEnrollSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.StudentCourseEnrollment
-        fields =  ['id','course','student','enrolled_time']
+        fields =  ['id','course','student','teacher','enrolled_time']
     
     def __init__(self, *args,  **kwargs):
         super(StudentCourseEnrollSerializer,self).__init__(*args,**kwargs)
@@ -95,3 +95,27 @@ class CourseRatingSerializer(serializers.ModelSerializer):
         self.Meta.depth=0
         if request and request.method == 'GET':
             self.Meta.depth=1
+
+
+class StudentAssignmentSerializer(serializers.ModelSerializer):  
+    class Meta:
+        model = models.StudentAssignment
+        fields = ['id','teacher','student', 'title', 'detail','student_status','add_time']
+    
+    def __init__(self,*args,**kwargs):
+        super(StudentAssignmentSerializer,self).__init__(*args,**kwargs)
+        request = self.context.get('request')
+        self.Meta.depth=0
+        if request and request.method == 'GET':
+            self.Meta.depth = 2
+
+
+class StudentDashboardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Student
+        fields = ['enrolled_courses','favorite_courses','complete_assignments','pending_assignments']
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Notification
+        fields = ['teacher','student','notif_subject','notif_for','notif_created_time','notifiread_status']
