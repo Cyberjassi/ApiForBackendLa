@@ -405,3 +405,13 @@ def fetch_quiz_assign_status(request,quiz_id,course_id):
 class AttemptQuizList(generics.ListCreateAPIView):
    queryset=models.AttempQuiz.objects.all()
    serializer_class=AttempQuizSerializer
+
+def fetch_quiz_attempt_status(request,quiz_id,student_id):
+   quiz = models.Quiz.objects.filter(id=quiz_id).first()
+   student=models.Student.objects.filter(id=student_id).first()
+   attemptStatus = models.AttempQuiz.objects.filter(student=student,question__quiz=quiz).count()
+   if attemptStatus > 0:
+      return JsonResponse({'bool':True})
+   else:
+      return JsonResponse({'bool':False})
+   
