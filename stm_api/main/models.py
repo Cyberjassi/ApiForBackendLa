@@ -205,6 +205,8 @@ class Quiz(models.Model):
     detail = models.TextField()
     add_time=models.DateTimeField(auto_now_add=True)
 
+    def assign_status(self):
+        return CourseQuiz.objects.filter(quiz=self).count()
     class Meta:
         verbose_name_plural = "11. Quiz"
 
@@ -229,6 +231,7 @@ class QuizQuestions(models.Model):
 
 
 class CourseQuiz(models.Model):
+    teacher = models.ForeignKey(Teacher,on_delete=models.CASCADE,null=True)
     course = models.ForeignKey(Course,on_delete=models.CASCADE,null=True)
     quiz=models.ForeignKey(Quiz,on_delete=models.CASCADE,null=True)
     add_time=models.DateTimeField(auto_now_add=True)
@@ -238,3 +241,29 @@ class CourseQuiz(models.Model):
 
     def __str__(self):
         return f"{self.course}-{self.quiz}"
+
+
+class CourseQuiz(models.Model):
+    teacher = models.ForeignKey(Teacher,on_delete=models.CASCADE,null=True)
+    course = models.ForeignKey(Course,on_delete=models.CASCADE,null=True)
+    quiz=models.ForeignKey(Quiz,on_delete=models.CASCADE,null=True)
+    add_time=models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = "13. Course Quiz"
+
+    def __str__(self):
+        return f"{self.course}-{self.quiz}"
+
+# quiz question by student
+class AttempQuiz(models.Model):
+    student = models.ForeignKey(Student,on_delete=models.CASCADE,null=True)
+    question = models.ForeignKey(QuizQuestions,on_delete=models.CASCADE,null=True)
+    right_ans = models.CharField(max_length=200,null=True)
+    add_time=models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = "14. Attempted Questions"
+
+    # def __str__(self):
+    #     return f"{self.course}-{self.quiz}"

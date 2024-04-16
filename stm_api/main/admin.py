@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Teacher, CourseCategory, Course, Chapter, Student, StudentCourseEnrollment, StudentFavoriteCourse, CourseRating, StudentAssignment, Notification,Quiz,QuizQuestions,CourseQuiz
+from .models import Teacher, CourseCategory, Course, Chapter, Student, StudentCourseEnrollment, StudentFavoriteCourse, CourseRating, StudentAssignment, Notification,Quiz,QuizQuestions,CourseQuiz,AttempQuiz
 
 @admin.register(Teacher)
 class TeacherAdmin(admin.ModelAdmin):
@@ -48,4 +48,4 @@ admin.site.register(Notification)
 admin.site.register(Quiz)
 admin.site.register(QuizQuestions)
 admin.site.register(CourseQuiz)
-
+admin.site.register(AttempQuiz)
