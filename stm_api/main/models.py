@@ -44,6 +44,9 @@ class CourseCategory(models.Model):
 
     class Meta:
         verbose_name_plural = "2. Course Categories"
+
+    def total_course(self):
+        return Course.objects.filter(category=self).count()
     
     # that is show on CourseCategory data when we put the data
     def __str__(self) -> str:
@@ -52,13 +55,14 @@ class CourseCategory(models.Model):
 
 class Course(models.Model):
     id = models.AutoField(primary_key=True)
-    category = models.ForeignKey(CourseCategory,on_delete=models.CASCADE)
+    category = models.ForeignKey(CourseCategory,on_delete=models.CASCADE,related_name='category_courses')
     #related name fatch all the courses which teacher have through id 
     teacher=models.ForeignKey(Teacher,on_delete=models.CASCADE,related_name='teacher_courses')
     title=models.CharField(max_length=150)
     description=models.TextField()
     featured_img=models.ImageField(upload_to='course_imgs/',null=True)
     techs=models.TextField(null=True)
+    course_views=models.BigIntegerField(default=0)
     
     class Meta:
         verbose_name_plural = "3. Course"
@@ -243,17 +247,18 @@ class CourseQuiz(models.Model):
         return f"{self.course}-{self.quiz}"
 
 
-class CourseQuiz(models.Model):
-    teacher = models.ForeignKey(Teacher,on_delete=models.CASCADE,null=True)
-    course = models.ForeignKey(Course,on_delete=models.CASCADE,null=True)
-    quiz=models.ForeignKey(Quiz,on_delete=models.CASCADE,null=True)
-    add_time=models.DateTimeField(auto_now_add=True)
+# class CourseQuiz(models.Model):
+#     teacher = models.ForeignKey(Teacher,on_delete=models.CASCADE,null=True)
+#     course = models.ForeignKey(Course,on_delete=models.CASCADE,null=True)
+#     quiz=models.ForeignKey(Quiz,on_delete=models.CASCADE,null=True)
+#     add_time=models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        verbose_name_plural = "13. Course Quiz"
+#     class Meta:
+#         verbose_name_plural = "13. Course Quiz"
 
-    def __str__(self):
-        return f"{self.course}-{self.quiz}"
+#     def __str__(self):
+#         return f"{self.course}-{self.quiz}"
+
 
 # quiz question by student
 class AttempQuiz(models.Model):
@@ -268,3 +273,19 @@ class AttempQuiz(models.Model):
 
     # def __str__(self):
     #     return f"{self.course}-{self.quiz}"
+
+
+class StudyMaterial(models.Model):
+    id = models.AutoField(primary_key=True)
+    # realted name paraticular course have particular chapter
+    course = models.ForeignKey(Course,on_delete=models.CASCADE)
+    title=models.CharField(max_length=150)
+    description=models.TextField()
+    upload=models.FileField(upload_to='study_materials/',null=True)
+    remarks=models.TextField(null=True)
+    
+    class Meta:
+        verbose_name_plural = "15. Course Study Materials"
+    
+    def __str__(self) -> str:
+        return self.title

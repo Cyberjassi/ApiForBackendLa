@@ -4,7 +4,7 @@ from rest_framework import serializers
 class TecherSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Teacher
-        fields =  ['id','full_name','email','password','qualification','mobile_no','skills','profile_img','teacher_courses','skill_list']
+        fields =  ['id','full_name','email','password','qualification','mobile_no','skills','profile_img','teacher_courses','skill_list','total_teacher_courses']
         # depth 1 for teacher_courses
     def __init__(self,*args, **kwargs):
        super(TecherSerializer,self).__init__(*args,**kwargs)
@@ -22,7 +22,7 @@ class TeacherDashboardSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.CourseCategory
-        fields =  ['id','title','description']
+        fields =  ['id','title','description','total_courses']
 
 class CourseSerializer(serializers.ModelSerializer):
 
@@ -94,7 +94,7 @@ class CourseRatingSerializer(serializers.ModelSerializer):
         request=self.context.get('request')
         self.Meta.depth=0
         if request and request.method == 'GET':
-            self.Meta.depth=1
+            self.Meta.depth=2
 
 
 class StudentAssignmentSerializer(serializers.ModelSerializer):  
@@ -173,4 +173,17 @@ class AttempQuizSerializer(serializers.ModelSerializer):
         self.Meta.depth = 0
         if request and request.method == 'GET':
             self.Meta.depth = 2
+
+class StudyMaterialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.StudyMaterial
+        fields = ['id','course','title','description','upload','remarks']
+
+    def __init__(self,*args,**kwargs):
+        super(StudyMaterialSerializer,self).__init__(*args,**kwargs)
+        request=self.context.get('request')
+        self.Meta.depth=0
+        if request and request.method == 'GET':
+            self.Meta.depth=1
+
 

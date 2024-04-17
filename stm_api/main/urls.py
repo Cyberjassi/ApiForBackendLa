@@ -7,14 +7,21 @@ urlpatterns = [
     path('teacher/dashboard/<int:pk>/',views.TeacherDashboard.as_view()),
     path('teacher/change-password/<int:teacher_id>/',views.teacher_change_password),
     path('teacher-login/',views.teacher_login),#
+
+    path('popular-teachers/',views.TeacherList.as_view()),
     path('category/',views.CategoryList.as_view()),
     path('course/',views.CourseList.as_view()),
+    path('popular-courses/',views.CourseRatingList.as_view()),
+    path('search-courses/<str:searchstring>',views.CourseList.as_view()),
+    path('update-view/<int:course_id>',views.update_view),
     path('course-chapters/<int:course_id>',views.CourseChapterList.as_view()),
     # path('chapter/',views.ChapterList.as_view()),
     path('chapter/<int:pk>',views.ChapterDetailView.as_view()),
     path('teacher-courses/<int:teacher_id>',views.TeacherCourseList.as_view()),
 
     path('teacher-courses-detail/<int:pk>',views.TeacherCourseDetail.as_view()),
+
+    path('student-testimonial/',views.CourseRatingList.as_view()),
     path('student/',views.StudentList.as_view()),
     path('student/<int:pk>/',views.StudentDetail.as_view()),
     path('student/dashboard/<int:pk>/',views.StudentDashboard.as_view()),
@@ -59,4 +66,14 @@ urlpatterns = [
     path('quiz-questions/<int:quiz_id>/next-question/<int:question_id>/',views.QuizQuestionList.as_view()),
 
     path('fetch-quiz-attempt-status/<int:quiz_id>/<int:student_id>',views.fetch_quiz_attempt_status),
+
+    path('study-materials/<int:course_id>',views.StudyMaterialList.as_view()),
+   
+
+    path('study-material/<int:pk>',views.StudyMaterialDetailView.as_view()),
+    path('user/study-materials/<int:course_id>',views.StudyMaterialList.as_view()),
+    path('attempted-quiz/<int:quiz_id>',views.AttemptQuizList.as_view()),
+    path('fetch-quiz-result/<int:quiz_id>/<int:student_id>',views.fetch_quiz_attempt_status),
+    path('attempted-quiz/<int:quiz_id>',views.AttemptQuizList.as_view()),
+
 ]
