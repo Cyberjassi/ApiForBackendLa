@@ -9,6 +9,7 @@ urlpatterns = [
     path('teacher-login/',views.teacher_login),#
 
     path('popular-teachers/',views.TeacherList.as_view()),
+    path('verify-teacher/<int:teacher_id>',views.verify_teacher_via_otp),
     path('category/',views.CategoryList.as_view()),
     path('course/',views.CourseList.as_view()),
     path('popular-courses/',views.CourseRatingList.as_view()),
@@ -75,5 +76,12 @@ urlpatterns = [
     path('attempted-quiz/<int:quiz_id>',views.AttemptQuizList.as_view()),
     path('fetch-quiz-result/<int:quiz_id>/<int:student_id>',views.fetch_quiz_attempt_status),
     path('attempted-quiz/<int:quiz_id>',views.AttemptQuizList.as_view()),
+
+    path('faq/',views.FaqList.as_view()),
+
+    path('pages/',views.FlatePageList.as_view()),
+    path('pages/<int:pk>/<str:page_slug>',views.FlatePageDetail.as_view()),
+
+    path('contact/',views.ContactList.as_view()),
 
 ]

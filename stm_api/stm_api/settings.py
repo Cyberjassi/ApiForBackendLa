@@ -28,6 +28,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# for flate page in django for id required
+
+SITE_ID = 1
+
 
 # Application definition
 
@@ -38,7 +42,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles','main','rest_framework',
+    'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'django.contrib.flatpages',
+    'main','rest_framework',
     # 'rest_framework.authtoken'
 ]
 
@@ -152,4 +159,6 @@ CORS_ALLOW_ALL_ORIGINS= True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 

@@ -1,6 +1,10 @@
 from django.db import models
 from django.core import serializers
 
+from django.core.mail import send_mail
+
+
+
 class Teacher(models.Model):
     id = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=100)
@@ -10,6 +14,8 @@ class Teacher(models.Model):
     mobile_no = models.CharField(max_length=20)
     profile_img=models.ImageField(upload_to='teahcer_profile_imgs/',null=True)
     skills=models.TextField()
+    verify_status=models.BooleanField(default=False)
+    otp_digit=models.CharField(max_length=20,null=True)
 
     #for shows in panel Table name
     class Meta:
@@ -33,7 +39,7 @@ class Teacher(models.Model):
     def total_teacher_students(self):
         total_students = StudentCourseEnrollment.objects.filter(course__teacher=self).count()
         return total_students
-    
+
 
 
 class CourseCategory(models.Model):
@@ -116,6 +122,8 @@ class Student(models.Model):
     username=models.CharField(max_length=200)
     interested_categories=models.TextField()
     profile_img=models.ImageField(upload_to='student_profile_imgs/',null=True)
+    verify_status=models.BooleanField(default=False)
+    otp_digit=models.CharField(max_length=20,null=True)
     class Meta:
         verbose_name_plural = "5. Student"
 
@@ -289,3 +297,39 @@ class StudyMaterial(models.Model):
     
     def __str__(self) -> str:
         return self.title
+    
+
+class FAQ(models.Model):
+    question=models.CharField(max_length=300)
+    answer=models.TextField()
+
+    def __str__(self) -> str:
+        return self.question
+
+    class Meta:
+        verbose_name_plural = "16. FAQ"
+
+
+class Contact(models.Model):
+    full_name=models.CharField(max_length=100)
+    email=models.EmailField()
+    query_txt=models.TextField()
+    add_time=models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return self.query_txt
+    
+    # before saving in db it work
+    def save(self,*args,**kwargs):
+        send_mail(
+            "Contact Query",
+            "Here is the message.",
+            "jaswantkhatri30@gmail.com",
+            [self.email],
+            fail_silently=False,
+            html_message=f"<p>{self.full_name}</p><p>{self.query_txt}</p>"
+        )
+        return super(Contact,self).save(*args,**kwargs)
+    class Meta:
+        verbose_name_plural="17. Contact Queries"
+

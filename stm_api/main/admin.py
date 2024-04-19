@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import Teacher, CourseCategory, Course, Chapter, Student, StudentCourseEnrollment, StudentFavoriteCourse, CourseRating, StudentAssignment, Notification,Quiz,QuizQuestions,CourseQuiz,AttempQuiz,StudyMaterial
+from .models import Teacher, CourseCategory, Course, Chapter, Student, StudentCourseEnrollment, StudentFavoriteCourse, CourseRating, StudentAssignment, Notification,Quiz,QuizQuestions,CourseQuiz,AttempQuiz,StudyMaterial,FAQ
 
 @admin.register(Teacher)
 class TeacherAdmin(admin.ModelAdmin):
-    fields = ['full_name','email','password','qualification','mobile_no','profile_img','skills']
+    fields = ['full_name','email','password','qualification','mobile_no','profile_img','skills','otp_digit']
 
 @admin.register(CourseCategory)
 class CourseCategoryAdmin(admin.ModelAdmin):
@@ -50,3 +50,4 @@ admin.site.register(QuizQuestions)
 admin.site.register(CourseQuiz)
 admin.site.register(AttempQuiz)
 admin.site.register(StudyMaterial)
+admin.site.register(FAQ)

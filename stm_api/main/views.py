@@ -1,11 +1,12 @@
 from django.shortcuts import render
+from django.contrib.flatpages.models import FlatPage
 
 from django.http import JsonResponse,HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.views import APIView
 from . import models
-from .serializers import TecherSerializer,CategorySerializer,StudentSerializer,CourseSerializer,ChapterSerializer,StudentCourseEnrollSerializer,CourseRatingSerializer,TeacherDashboardSerializer,StudentFavoriteCourseSerializer,StudentAssignmentSerializer,StudentDashboardSerializer,NotificationSerializer,QuizSerializer,QuestionSerializer,CourseQuizSerializer,AttempQuizSerializer,StudyMaterialSerializer
+from .serializers import TecherSerializer,CategorySerializer,StudentSerializer,CourseSerializer,ChapterSerializer,StudentCourseEnrollSerializer,CourseRatingSerializer,TeacherDashboardSerializer,StudentFavoriteCourseSerializer,StudentAssignmentSerializer,StudentDashboardSerializer,NotificationSerializer,QuizSerializer,QuestionSerializer,CourseQuizSerializer,AttempQuizSerializer,StudyMaterialSerializer,FaqSerializer,FlatPagesSerializer,ContactSerializer
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import permissions
@@ -110,20 +111,32 @@ class TeacherCourseDetail(generics.RetrieveUpdateDestroyAPIView):
 @csrf_exempt
 # it responsible for handle frontened request means if login information is match then it response True otherwise False
 def teacher_login(request):
-   
-    if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
 
         # Filter teachers with matching email and password
-        teacher_data = models.Teacher.objects.filter(email=email, password=password).first()
-
-        if teacher_data:
-            return JsonResponse({'bool': True})
+        try:
+            teacherData = models.Teacher.objects.filter(email=email, password=password,verify_status=True).first()
+        except models.Teacher.DoesNotExist:
+           teacherData=None
+        if teacherData:
+            if not teacherData.verify_status:
+               return JsonResponse({'bool': False,'msg':'Account is not verified!!'})
+            else:
+               return JsonResponse({'bool': True,'teacher_id':teacherData.id})
         else:
-            return JsonResponse({'bool': False})
-    else:
-        return JsonResponse({'error': 'Only POST requests are allowed.'})
+            return JsonResponse({'bool':False,'msg':'Invalid Email or Password!!!'})
+        
+@csrf_exempt       
+def verify_teacher_via_otp(request,teacher_id):
+   otp_digit=request.POST.get('otp_digit')
+   verify = models.Teacher.objects.filter(id=teacher_id,otp_digit=otp_digit).first()
+   if verify:
+      models.Teacher.objects.filter(id=teacher_id,otp_digit=otp_digit).update(verify_status=True)
+      return JsonResponse({'bool':True,'teacher_id':verify.id})
+   else:
+      return JsonResponse({'bool':False})
+   
    
 class CourseChapterList(generics.ListCreateAPIView):
    queryset = models.Chapter.objects.all()
@@ -489,4 +502,24 @@ def update_view(request,course_id):
    queryset.course_views+=1
    queryset.save()
    return JsonResponse({'views':queryset.course_views})
+
+
+
+class FaqList(generics.ListAPIView):
+   queryset=models.FAQ.objects.all()
+   serializer_class=FaqSerializer
+
+
+class FlatePageList(generics.ListAPIView):
+   queryset = FlatPage.objects.all()
+   serializer_class=FlatPagesSerializer
+
+class FlatePageDetail(generics.RetrieveAPIView):
+   queryset = FlatPage.objects.all()
+   serializer_class=FlatPagesSerializer
    
+
+class ContactList(generics.ListCreateAPIView):
+   queryset=models.Contact.objects.all()
+   serializer_class=ContactSerializer
+
