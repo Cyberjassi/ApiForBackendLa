@@ -121,7 +121,7 @@ def teacher_login(request):
            teacherData=None
         if teacherData:
             if not teacherData.verify_status:
-               return JsonResponse({'bool': False,'msg':'Account is not verified!!'})
+               return JsonResponse({'bool': False,'teacher_id':teacherData.id,'msg':'Account is not verified!!'})
             else:
                return JsonResponse({'bool': True,'teacher_id':teacherData.id})
         else:
@@ -522,4 +522,6 @@ class FlatePageDetail(generics.RetrieveAPIView):
 class ContactList(generics.ListCreateAPIView):
    queryset=models.Contact.objects.all()
    serializer_class=ContactSerializer
+
+
 

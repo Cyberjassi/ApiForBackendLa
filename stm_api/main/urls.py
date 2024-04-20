@@ -9,7 +9,7 @@ urlpatterns = [
     path('teacher-login/',views.teacher_login),#
 
     path('popular-teachers/',views.TeacherList.as_view()),
-    path('verify-teacher/<int:teacher_id>',views.verify_teacher_via_otp),
+    path('verify-teacher/<int:teacher_id>/',views.verify_teacher_via_otp),
     path('category/',views.CategoryList.as_view()),
     path('course/',views.CourseList.as_view()),
     path('popular-courses/',views.CourseRatingList.as_view()),

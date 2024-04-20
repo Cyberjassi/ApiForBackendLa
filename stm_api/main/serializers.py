@@ -4,10 +4,13 @@ from django.contrib.flatpages.models import FlatPage
 
 from django.core.mail import send_mail
 
+
+
+
 class TecherSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Teacher
-        fields =  ['id','full_name','email','password','qualification','mobile_no','skills','otp_digit','profile_img','teacher_courses','skill_list','total_teacher_courses']
+        fields =  ['id','full_name','email','password','qualification','mobile_no','skills','otp_digit','profile_img','teacher_courses','skill_list','total_teacher_courses','verify_status']
         # depth 1 for teacher_courses
     def __init__(self,*args, **kwargs):
        super(TecherSerializer,self).__init__(*args,**kwargs)
@@ -22,13 +25,14 @@ class TecherSerializer(serializers.ModelSerializer):
         otp_digit=self.validated_data['otp_digit']
         instance=super(TecherSerializer,self).create(validate_data)
         send_mail(
-            "Verify Account",
+           "Verify Account",
             "Please Verify your account",
             "jaswantkhatri30@gmail.com",
             [email],
             fail_silently=False,
             html_message=f"<p>Your otp is </p><p>{otp_digit}</p>"
         )
+     
         return instance
 
 
