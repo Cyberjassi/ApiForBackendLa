@@ -11,6 +11,10 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import permissions
 from rest_framework.pagination import PageNumberPagination
+import json
+
+from json.decoder import JSONDecodeError
+
 
 from rest_framework import status
 from django.db.models import Q
@@ -26,10 +30,12 @@ class TeacherList(generics.ListCreateAPIView):
    serializer_class=TecherSerializer
    #withour authenticate we can'nt able to see and do operations
    # permission_classes = [permissions.IsAuthenticated]
-   def get_queryset(self):
-      if 'popular' in self.request.GET:
-         sql="SELECT *,COUNT(c.id) as total_course FROM main_teacher as t INNER JOIN main_course as c ON c.teacher_id=t.id GROUP BY t.id ORDER BY total_course desc"
-         return models.Teacher.objects.raw(sql)
+   
+   #Will---
+   # def get_queryset(self):
+   #    if 'popular' in self.request.GET:
+   #       sql="SELECT *,COUNT(c.id) as total_course FROM main_teacher as t INNER JOIN main_course as c ON c.teacher_id=t.id GROUP BY t.id ORDER BY total_course desc"
+   #       return models.Teacher.objects.raw(sql)
 class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
    queryset=models.Teacher.objects.all()
    serializer_class=TecherSerializer
@@ -108,24 +114,49 @@ class TeacherCourseDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CourseSerializer
    
 
-@csrf_exempt
-# it responsible for handle frontened request means if login information is match then it response True otherwise False
-def teacher_login(request):
-        email = request.POST.get('email')
-        password = request.POST.get('password')
 
-        # Filter teachers with matching email and password
+# it responsible for handle frontened request means if login information is match then it response True otherwise False
+
+@csrf_exempt
+def teacher_login(request):
+    if request.method == 'POST':
         try:
-            teacherData = models.Teacher.objects.filter(email=email, password=password,verify_status=True).first()
-        except models.Teacher.DoesNotExist:
-           teacherData=None
-        if teacherData:
-            if not teacherData.verify_status:
-               return JsonResponse({'bool': False,'teacher_id':teacherData.id,'msg':'Account is not verified!!'})
+            data = json.loads(request.body)
+            email = data.get('email')
+            password = data.get('password')
+            print(request.body)
+            print(email, password)
+            
+            try:
+                teacher_data = models.Teacher.objects.filter(email=email, password=password).first()
+            except models.Teacher.DoesNotExist:
+                teacher_data = None
+
+            if teacher_data:
+                return JsonResponse({'bool': True})
             else:
-               return JsonResponse({'bool': True,'teacher_id':teacherData.id})
-        else:
-            return JsonResponse({'bool':False,'msg':'Invalid Email or Password!!!'})
+                return JsonResponse({'bool': False})
+        except JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
+
+
+# will---
+      #   email = request.POST.get('email')
+      #   password = request.POST.get('password')
+        # Filter teachers with matching email and password
+      #   try:
+      #       teacherData = models.Teacher.objects.filter(email=email, password=password,verify_status=True).first()
+      #   except models.Teacher.DoesNotExist:
+      #      teacherData=None
+      #   if teacherData:
+      #       if not teacherData.verify_status:
+      #          return JsonResponse({'bool': False,'teacher_id':teacherData.id,'msg':'Account is not verified!!'})
+      #       else:
+      #          return JsonResponse({'bool': True,'teacher_id':teacherData.id})
+      #   else:
+      #       return JsonResponse({'bool':False,'msg':'Invalid Email or Password!!!'})
         
 @csrf_exempt       
 def verify_teacher_via_otp(request,teacher_id):

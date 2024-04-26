@@ -44,21 +44,26 @@ class TeacherDashboardSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.CourseCategory
-        fields =  ['id','title','description','total_courses']
+        # will---
+        # fields =  ['id','title','description','total_courses']
+        fields = ['id','title','description']
 
 class CourseSerializer(serializers.ModelSerializer):
 
 
     class Meta:
         model = models.Course
-        fields = ['id', 'category', 'teacher', 'title', 'description', 'featured_img', 'techs', 'course_chapter', 'related_videos', 'tech_list', 'total_enrolled_student', 'course_rating']
+        fields = ['id', 'category', 'teacher', 'title', 'description', 'featured_img', 'techs']
+
+        # will---
+    #     fields = ['id', 'category', 'teacher', 'title', 'description', 'featured_img', 'techs', 'course_chapter', 'related_videos', 'tech_list', 'total_enrolled_student', 'course_rating']
     
-    def __init__(self,*args,**kwargs):
-        super(CourseSerializer,self).__init__(*args,**kwargs)
-        request = self.context.get('request')
-        self.Meta.depth=0
-        if request and request.method == 'GET':
-            self.Meta.depth = 2
+    # def __init__(self,*args,**kwargs):
+    #     super(CourseSerializer,self).__init__(*args,**kwargs)
+    #     request = self.context.get('request')
+    #     self.Meta.depth=0
+    #     if request and request.method == 'GET':
+    #         self.Meta.depth = 2
 
 class ChapterSerializer(serializers.ModelSerializer):
     class Meta:

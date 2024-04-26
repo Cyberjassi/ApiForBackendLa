@@ -148,7 +148,11 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Means all can access django api or we can also do for specific url
 CORS_ALLOW_ALL_ORIGINS= True
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:3000',  # Allow requests from your Next.js application
+# ]
 
 
 #test purpose-

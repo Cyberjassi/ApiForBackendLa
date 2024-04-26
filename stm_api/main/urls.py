@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+# from .views import TeacherLoginApiView
 
 urlpatterns = [
     path('teacher/',views.TeacherList.as_view()),
