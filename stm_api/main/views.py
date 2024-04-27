@@ -25,9 +25,25 @@ class StandardResultsSetPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 4
 
-class TeacherList(generics.ListCreateAPIView):
-   queryset=models.Teacher.objects.all()
-   serializer_class=TecherSerializer
+
+class TeacherList(APIView):
+    def get(self, request):
+        queryset = models.Teacher.objects.all()
+        serializer = TecherSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        
+        print("this is data from forntend",request.data)
+        serializer = TecherSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# change-
+# class TeacherList(generics.ListCreateAPIView):
+#    queryset=models.Teacher.objects.all()
+#    serializer_class=TecherSerializer
    #withour authenticate we can'nt able to see and do operations
    # permission_classes = [permissions.IsAuthenticated]
    
@@ -52,44 +68,61 @@ class CategoryList(generics.ListCreateAPIView):
    serializer_class=CategorySerializer
    # permission_classes = [permissions.IsAuthenticated]
 
-class CourseList(generics.ListCreateAPIView):
-    queryset = models.Course.objects.all()
-    serializer_class = CourseSerializer
-   #  for pagination-
-    pagination_class=StandardResultsSetPagination
 
-    def get_queryset(self):
-        qs = super().get_queryset()
-        if 'result' in self.request.GET:
-            limit = int(self.request.GET['result'])
-            qs = models.Course.objects.all().order_by('-id')[:limit]
+class CourseList(APIView):
+    def get(self, request):
+        queryset = models.Course.objects.all()
+        serializer = CourseSerializer(queryset, many=True)
+        return Response(serializer.data)
 
-        elif 'category' in self.request.GET:
-            category = self.request.GET['category']
-            category = models.CourseCategory.objects.filter(id=category).first()
-            qs = models.Course.objects.filter(category=category)
+    def post(self, request):
+        
+      #   print("this is data from forntend",request.data)
+        serializer = CourseSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# change---
+# class CourseList(generics.ListCreateAPIView):
+#     queryset = models.Course.objects.all()
+#     serializer_class = CourseSerializer
 
-        elif 'skill_name' in self.request.GET and 'teacher' in self.request.GET:
-            skill_name = self.request.GET['skill_name']
-            teacher = self.request.GET['teacher']
-            teacher = models.Teacher.objects.filter(id=teacher).first()
-            qs = models.Course.objects.filter(techs__icontains=skill_name, teacher=teacher)
-# search according title in serach bar
-        elif 'searchstring' in self.kwargs:
-            search = self.kwargs['searchstring']
-            qs = models.Course.objects.filter(Q(title__icontains=search)|Q(techs__icontains=search))
+   ##  for pagination-
+#     pagination_class=StandardResultsSetPagination
 
-        elif 'studentId' in self.kwargs:
-            student_id = self.kwargs['studentId']
-            student = models.Student.objects.get(pk=student_id)
-            queries = [Q(techs__icontains=value) for value in student.interested_categories]
-            query = queries.pop()
-            for item in queries:
-                query |= item
-            qs = models.Course.objects.filter(query)
+#     def get_queryset(self):
+#         qs = super().get_queryset()
+#         if 'result' in self.request.GET:
+#             limit = int(self.request.GET['result'])
+#             qs = models.Course.objects.all().order_by('-id')[:limit]
 
-        return qs
-   # permission_classes = [permissions.IsAuthenticated]
+#         elif 'category' in self.request.GET:
+#             category = self.request.GET['category']
+#             category = models.CourseCategory.objects.filter(id=category).first()
+#             qs = models.Course.objects.filter(category=category)
+
+#         elif 'skill_name' in self.request.GET and 'teacher' in self.request.GET:
+#             skill_name = self.request.GET['skill_name']
+#             teacher = self.request.GET['teacher']
+#             teacher = models.Teacher.objects.filter(id=teacher).first()
+#             qs = models.Course.objects.filter(techs__icontains=skill_name, teacher=teacher)
+# # search according title in serach bar
+#         elif 'searchstring' in self.kwargs:
+#             search = self.kwargs['searchstring']
+#             qs = models.Course.objects.filter(Q(title__icontains=search)|Q(techs__icontains=search))
+
+#         elif 'studentId' in self.kwargs:
+#             student_id = self.kwargs['studentId']
+#             student = models.Student.objects.get(pk=student_id)
+#             queries = [Q(techs__icontains=value) for value in student.interested_categories]
+#             query = queries.pop()
+#             for item in queries:
+#                 query |= item
+#             qs = models.Course.objects.filter(query)
+
+#         return qs
+   ##permission_classes = [permissions.IsAuthenticated]
 
 class CourseDetailView(generics.RetrieveAPIView):
    queryset = models.Course.objects.all()
@@ -97,7 +130,7 @@ class CourseDetailView(generics.RetrieveAPIView):
 #specific techer course-
 class TeacherCourseList(generics.ListCreateAPIView):
     serializer_class = CourseSerializer
-
+   #  it is use for overide course so that we car retriewe specific course according to teacher id
     def get_queryset(self):
         # Retrieve teacher ID from URL kwargs
         teacher_id = self.kwargs['teacher_id']
@@ -133,7 +166,7 @@ def teacher_login(request):
                 teacher_data = None
 
             if teacher_data:
-                return JsonResponse({'bool': True})
+                return JsonResponse({'bool': True,'teacher_id':teacher_data.id})
             else:
                 return JsonResponse({'bool': False})
         except JSONDecodeError:
