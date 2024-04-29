@@ -1,0 +1,207 @@
+// __define-ocg__
+Write file & hash file :-
+
+const https = require('https');
+const fs = require('fs');
+const crypto = require('crypto');
+
+// Make a GET request
+https.get('https://coderbyte.com/api/challenges/json/age-counting', (response) => {
+    let data = '';
+
+    // Concatenate chunks of data
+    response.on('data', (chunk) => {
+        data += chunk;
+    });
+
+    // Process the received data
+    response.on('end', () => {
+        // Parse the JSON data
+        const jsonData = JSON.parse(data);
+
+        // Extract items from the 'data' key
+        const items = jsonData.data.split(', ');
+
+        // Filter items with age equal to 32
+        const age32Items = items.filter(item => item.includes('age=32'));
+
+        // Extract keys from age 32 items
+        const keys = age32Items.map(item => item.split('=')[1]);
+
+        // Create a write stream to output.txt
+        const writeStream = fs.createWriteStream('output.txt');
+
+        // Write keys to the file
+        keys.forEach(key => {
+            writeStream.write(`${key}\n`);
+        });
+
+        // Close the write stream
+        writeStream.end();
+
+        // Calculate SHA1 hash of the file
+        const hash = crypto.createHash('sha1');
+        const fileContents = fs.readFileSync('output.txt', 'utf-8');
+        hash.update(fileContents);
+
+        // Output the SHA1 hash
+        console.log(hash.digest('hex'));
+    });
+}).on('error', (error) => {
+    console.error(`Error: ${error.message}`);
+});
+
+// Placeholder for __define-ocg__ variable
+let varOcg;
+
+
+
+*********************************************************************************************************
+
+Csv to json :-
+
+
+
+const https = require('https');
+
+// Function to perform a GET request
+function fetchData(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (response) => {
+      let data = '';
+
+      // A chunk of data has been received.
+      response.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      // The whole response has been received.
+      response.on('end', () => {
+        resolve(data);
+      });
+    }).on('error', (error) => {
+      reject(error);
+    });
+  });
+}
+
+// Main function
+async function processData() {
+  try {
+    const apiUrl = 'https://coderbyte.com/api/challenges/logs/user-info-csv';
+
+    // Fetch CSV data
+    const csvData = await fetchData(apiUrl);
+
+    // Parse CSV and sort by the second column
+    const jsonData = csvData
+      .trim()
+      .split('\n')
+      .map((line) => line.split(','))
+      .slice(1) // Skip header row
+      .sort((a, b) => a[1].localeCompare(b[1]))
+      .map((row) => {
+        return {
+          name: row[0],
+          email: row[1],
+          phone: row[2],
+        };
+      });
+
+    // Convert to JSON and log as a string
+    console.log(JSON.stringify(jsonData, null, 2));
+  } catch (error) {
+    console.error('Error fetching or processing data:', error.message);
+  }
+}
+
+// Run the main function
+processData();
+
+
+
+------another one without locale compare function--------
+
+const axios = require('axios');
+const csv = require('csvtojson');
+
+// Function to perform a GET request
+async function fetchData(url) {
+  try {
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    throw new Error(`Error fetching data: ${error.message}`);
+  }
+}
+
+// Main function
+async function processData() {
+  try {
+    const apiUrl = 'https://coderbyte.com/api/challenges/logs/user-info-csv';
+
+    // Fetch CSV data
+    const csvData = await fetchData(apiUrl);
+
+    // Parse CSV and sort by the second column (email)
+    const jsonData = await csv({
+      noheader: false,
+      headers: ['name', 'email', 'phone'],
+    })
+      .fromString(csvData)
+      .then((jsonObj) => {
+        return jsonObj.sort((a, b) => {
+          const emailA = a.email.toLowerCase();
+          const emailB = b.email.toLowerCase();
+          if (emailA < emailB) return -1;
+          if (emailA > emailB) return 1;
+          return 0;
+        });
+      });
+
+    // Log the sorted JSON as a string
+    console.log(JSON.stringify(jsonData, null, 2));
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+// Run the main function
+processData();
+
+*******************************************************************************************************************
+
+Date manipulation:-
+
+
+
+
+// Perform a GET request on the specified route
+fetch('https://coderbyte.com/api/challenges/json/date-list')
+  .then(response => response.json())
+  .then(data => {
+    // Extract dates from the input array
+    const dates = data.map(item => new Date(item.date));
+    
+    // Find the earliest and latest dates
+    const earliestDate = new Date(Math.min(...dates));
+    const latestDate = new Date(Math.max(...dates));
+
+    // Create a new array of objects with date and value properties
+    const resultArray = [];
+    for (let currentDate = new Date(earliestDate); currentDate <= latestDate; currentDate.setDate(currentDate.getDate() + 1)) {
+      const dateString = currentDate.toISOString();
+      const existingData = data.find(item => item.date === dateString);
+
+      if (existingData) {
+        resultArray.push(existingData);
+      } else {
+        resultArray.push({ date: dateString, value: 0 });
+      }
+    }
+
+    // Console log the result as a string
+    console.log(JSON.stringify(resultArray));
+  })
+  .catch(error => console.error('Error fetching data:', error));
+

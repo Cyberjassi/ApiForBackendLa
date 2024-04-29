@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.flatpages.models import FlatPage
 
-from django.http import JsonResponse,HttpResponse
+from django.http import Http404, JsonResponse,HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.views import APIView
@@ -202,13 +202,54 @@ def verify_teacher_via_otp(request,teacher_id):
       return JsonResponse({'bool':False})
    
    
-class CourseChapterList(generics.ListCreateAPIView):
-   queryset = models.Chapter.objects.all()
-   serializer_class = ChapterSerializer
+class ChapterList(APIView):
+    def get(self, request):
+        queryset = models.Chapter.objects.all()
+        serializer = ChapterSerializer(queryset, many=True)
+        return Response(serializer.data)
 
-class ChapterDetailView(generics.RetrieveUpdateDestroyAPIView):
-   queryset = models.Chapter.objects.all()
-   serializer_class = ChapterSerializer
+    def post(self, request):
+        
+        print("this is data from forntend",request.data)
+        serializer = ChapterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ChapterDetailView(APIView):
+    def get_object(self, pk):
+        try:
+            return models.Chapter.objects.get(pk=pk)
+        except models.Chapter.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        chapter = self.get_object(pk)
+        serializer = ChapterSerializer(chapter)
+        return Response(serializer.data)
+
+    def put(self, request, pk, format=None):
+        chapter = self.get_object(pk)
+        serializer = ChapterSerializer(chapter, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk, format=None):
+        print("this is my dat................................................................",request.body)
+        chapter = self.get_object(pk)
+        serializer = ChapterSerializer(chapter, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        chapter = self.get_object(pk)
+        chapter.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
    # def get_serializer_context(self):
    #    context=super().get_serializer_context()
@@ -217,13 +258,21 @@ class ChapterDetailView(generics.RetrieveUpdateDestroyAPIView):
    #    print(context)
    #    return context
 
-class CourseChapterList(generics.ListCreateAPIView):
-   serializer_class = ChapterSerializer
-
-   def get_queryset(self):
-    course_id = self.kwargs['course_id']
-    course = models.Course.objects.get(pk=course_id)
-    return models.Chapter.objects.filter(course=course)
+class CourseChapterList(APIView):
+    def get(self, request, course_id):
+        try:
+            chapters = models.Chapter.objects.filter(course_id=course_id)
+            serializer = ChapterSerializer(chapters, many=True)
+            return Response(serializer.data)
+        except models.Chapter.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    def post(self, request, course_id):
+        serializer = ChapterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(course_id=course_id)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
    
 
 class StudentList(generics.ListCreateAPIView):
