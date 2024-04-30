@@ -74,15 +74,18 @@ class CourseList(APIView):
         queryset = models.Course.objects.all()
         serializer = CourseSerializer(queryset, many=True)
         return Response(serializer.data)
-
     def post(self, request):
-        
       #   print("this is data from forntend",request.data)
         serializer = CourseSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if 'result' in self.request.GET:
+            limit = int(self.request.GET['result'])
+            qs = models.Course.objects.all().order_by('-id')[:limit]
 # change---
 # class CourseList(generics.ListCreateAPIView):
 #     queryset = models.Course.objects.all()
@@ -142,9 +145,39 @@ class TeacherCourseList(generics.ListCreateAPIView):
         return models.Course.objects.filter(teacher=teacher)
 
 #through that teacher can do curd
-class TeacherCourseDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = models.Course.objects.all()
-    serializer_class = CourseSerializer
+
+class TeacherCourseDetail(APIView):
+    def get_object(self, pk):
+        try:
+            return models.Course.objects.get(pk=pk)
+        except models.Course.DoesNotExist:
+            raise Http404
+    def get(self, request, pk, format=None):
+        course = self.get_object(pk)
+        serializer = CourseSerializer(course)
+        return Response(serializer.data)
+    def put(self, request, pk, format=None):
+        course = self.get_object(pk)
+        serializer = CourseSerializer(course, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def patch(self, request, pk, format=None):
+        course = self.get_object(pk)
+        serializer = CourseSerializer(course, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def delete(self, request, pk, format=None):
+        course = self.get_object(pk)
+        course.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+# will-
+# class TeacherCourseDetail(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = models.Course.objects.all()
+#     serializer_class = CourseSerializer
    
 
 
@@ -207,9 +240,7 @@ class ChapterList(APIView):
         queryset = models.Chapter.objects.all()
         serializer = ChapterSerializer(queryset, many=True)
         return Response(serializer.data)
-
     def post(self, request):
-        
         print("this is data from forntend",request.data)
         serializer = ChapterSerializer(data=request.data)
         if serializer.is_valid():

@@ -10,7 +10,7 @@ from django.core.mail import send_mail
 class TecherSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Teacher
-        fields =  ['id','full_name','email','password','qualification','mobile_no','skills','otp_digit','profile_img','teacher_courses','skill_list','total_teacher_courses','verify_status']
+        fields =  ['id','full_name','detail','email','password','qualification','mobile_no','skills','otp_digit','profile_img','teacher_courses','skill_list','total_teacher_courses','verify_status']
         # depth 1 for teacher_courses
     def __init__(self,*args, **kwargs):
        super(TecherSerializer,self).__init__(*args,**kwargs)
@@ -49,11 +49,10 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id','title','description']
 
 class CourseSerializer(serializers.ModelSerializer):
-
-
     class Meta:
         model = models.Course
-        fields = ['id', 'category', 'teacher', 'title', 'description', 'featured_img', 'techs']
+        fields = ['id', 'category', 'teacher', 'title', 'description', 'featured_img', 'techs','course_chapter','related_videos']
+        depth=1
 
         # will---
     #     fields = ['id', 'category', 'teacher', 'title', 'description', 'featured_img', 'techs', 'course_chapter', 'related_videos', 'tech_list', 'total_enrolled_student', 'course_rating']

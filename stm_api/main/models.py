@@ -8,6 +8,7 @@ from django.core.mail import send_mail
 class Teacher(models.Model):
     id = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=100)
+    detail=models.TextField(null=True)
     email = models.CharField(max_length=100)
     password=models.CharField(max_length=100)
     qualification=models.CharField(max_length=100)
@@ -77,7 +78,7 @@ class Course(models.Model):
     def __str__(self) -> str:
         return self.title
     
-        ########-
+        # realted video filter all video which have same tech and we exclude the current video and we manualy serialize the data of video
     def related_videos(self):
         related_videos=Course.objects.filter(techs__icontains=self.techs).exclude(id=self.id)
         return serializers.serialize('json',related_videos)
