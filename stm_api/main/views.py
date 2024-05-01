@@ -68,24 +68,59 @@ class CategoryList(generics.ListCreateAPIView):
    serializer_class=CategorySerializer
    # permission_classes = [permissions.IsAuthenticated]
 
-
 class CourseList(APIView):
     def get(self, request):
-        queryset = models.Course.objects.all()
+        queryset = self.get_queryset()
         serializer = CourseSerializer(queryset, many=True)
         return Response(serializer.data)
+    def get_queryset(self):
+        queryset = models.Course.objects.all()
+        # Filter by 'result' query parameter
+        if 'result' in self.request.GET:
+            limit = int(self.request.GET['result'])
+            queryset = queryset.order_by('-id')[:limit]
+        # Filter by 'category' query parameter
+        elif 'category' in self.request.GET:
+            print("this is link",self.request)
+            category = self.request.GET['category']
+            queryset = models.Course.objects.filter(techs__icontains=category)
+            return queryset
+        elif 'skill_name' in self.request.GET and 'teacher' in self.request.GET:
+            skill_name = self.request.GET['skill_name']
+            teacher = self.request.GET['teacher']
+            teacher = models.Teacher.objects.filter(id=teacher).first()
+            queryset = models.Course.objects.filter(techs__icontains=skill_name,teacher=teacher)
+        return queryset
     def post(self, request):
-      #   print("this is data from forntend",request.data)
         serializer = CourseSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    def get_queryset(self):
-        qs = super().get_queryset()
-        if 'result' in self.request.GET:
-            limit = int(self.request.GET['result'])
-            qs = models.Course.objects.all().order_by('-id')[:limit]
+
+
+# class CourseList(APIView):
+#     def get(self, request):
+#         queryset = models.Course.objects.all()
+#         serializer = CourseSerializer(queryset, many=True)
+#         return Response(serializer.data)
+#     def post(self, request):
+#       #   print("this is data from forntend",request.data)
+#         serializer = CourseSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     def get_queryset(self):
+#         qs = super().get_queryset()
+#         if 'result' in self.request.GET:
+#             limit = int(self.request.GET['result'])
+#             qs = models.Course.objects.all().order_by('-id')[:limit]
+#             # if category exits in our url then we will filter the data and return the data ---
+#         elif 'category' in self.request.GET:
+#             category = self.request.GET['category']
+#             category = models.CourseCategory.objects.filter(id=category).first()
+#             qs = models.Course.objects.filter(category=category)
 # change---
 # class CourseList(generics.ListCreateAPIView):
 #     queryset = models.Course.objects.all()
@@ -100,10 +135,7 @@ class CourseList(APIView):
 #             limit = int(self.request.GET['result'])
 #             qs = models.Course.objects.all().order_by('-id')[:limit]
 
-#         elif 'category' in self.request.GET:
-#             category = self.request.GET['category']
-#             category = models.CourseCategory.objects.filter(id=category).first()
-#             qs = models.Course.objects.filter(category=category)
+
 
 #         elif 'skill_name' in self.request.GET and 'teacher' in self.request.GET:
 #             skill_name = self.request.GET['skill_name']
@@ -306,10 +338,22 @@ class CourseChapterList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
    
 
-class StudentList(generics.ListCreateAPIView):
-   queryset=models.Student.objects.all()
-   serializer_class=StudentSerializer
+# class StudentList(generics.ListCreateAPIView):
+#    queryset=models.Student.objects.all()
+#    serializer_class=StudentSerializer
+class StudentList(APIView):
+    def get(self, request):
+        queryset = models.Student.objects.all()
+        serializer = StudentSerializer(queryset, many=True)
+        return Response(serializer.data)
 
+    def post(self, request):
+        print("this is data from forntend",request.data)
+        serializer = StudentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class StudentDetail(generics.RetrieveUpdateDestroyAPIView):
    queryset=models.Student.objects.all()

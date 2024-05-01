@@ -51,7 +51,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Course
-        fields = ['id', 'category', 'teacher', 'title', 'description', 'featured_img', 'techs','course_chapter','related_videos']
+        fields = ['id', 'category', 'teacher', 'title', 'description', 'featured_img', 'techs','course_chapter','related_videos','tech_list']
         depth=1
 
         # will---
@@ -82,7 +82,9 @@ class ChapterSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Student
-        fields =  ['id','full_name','email','profile_img','password','username','interested_categories']
+        fields =  ['id','full_name','email','password','username','interested_categories']
+        # will---
+        # fields =  ['id','full_name','email','profile_img','password','username','interested_categories']
     def __init__(self, *args, **kwargs):
         super(StudentSerializer,self).__init__(*args,**kwargs)
         request=self.context.get('request')

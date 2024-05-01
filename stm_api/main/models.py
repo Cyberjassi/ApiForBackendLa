@@ -24,7 +24,7 @@ class Teacher(models.Model):
 
     def __str__(self) -> str:
         return self.full_name
-    
+    # becuse want to show all skill in ui
     def skill_list(self):
         skill_list=self.skills.split(',')
         return skill_list
