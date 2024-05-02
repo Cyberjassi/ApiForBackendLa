@@ -7,7 +7,7 @@ urlpatterns = [
     path('teacher/<int:pk>/',views.TeacherDetail.as_view()),
     path('teacher/dashboard/<int:pk>/',views.TeacherDashboard.as_view()),
     path('teacher/change-password/<int:teacher_id>/',views.teacher_change_password),
-    path('teacher-login/',views.teacher_login),#
+    path('teacher-login/',views.teacher_login.as_view()),#
 
     path('popular-teachers/',views.TeacherList.as_view()),
     path('verify-teacher/<int:teacher_id>/',views.verify_teacher_via_otp),

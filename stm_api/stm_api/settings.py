@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -46,6 +47,8 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.flatpages',
     'main','rest_framework',
+    'rest_framework_simplejwt'
+    
     # 'rest_framework.authtoken'
 ]
 
@@ -121,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # token authentication setting-
 REST_FRAMEWORK={
     'DEFAULT_AUTHENTICATION_CLASSES':[
-        # 'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
 
@@ -148,11 +151,35 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# its use for if we send cookie to frontend then it will be allow to access 
+CORS_ALLOW_CREDENTIALS = True
 # Means all can access django api or we can also do for specific url
 CORS_ALLOW_ALL_ORIGINS= True
 # CORS_ALLOWED_ORIGINS = [
 #     'http://localhost:3000',  # Allow requests from your Next.js application
 # ]
+
+
+# JWT Settings
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
+
+    'JTI_CLAIM': 'jti',
+
+}
+
+
 
 
 #test purpose-

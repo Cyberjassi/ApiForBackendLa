@@ -1,6 +1,8 @@
 from . import models
 from rest_framework import serializers
+from django.contrib.flatpages.models import FlatPage
 
+from django.core.mail import send_mail
 
 class TecherSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,7 +38,3 @@ class TeacherDashboardSerializer(serializers.ModelSerializer):
         model = models.Teacher
         fields = ['total_teacher_courses','total_teacher_students','total_teacher_chapters']
 
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.CourseCategory
-        fields =  ['id','title','description','total_courses']

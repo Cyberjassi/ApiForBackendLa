@@ -8,6 +8,7 @@ from django.core.mail import send_mail
 
 
 class TecherSerializer(serializers.ModelSerializer):
+    # password = serializers.CharField(style={'input_type':'password'},write_only=True)
     class Meta:
         model = models.Teacher
         fields =  ['id','full_name','detail','email','password','qualification','mobile_no','skills','otp_digit','profile_img','teacher_courses','skill_list','total_teacher_courses','verify_status']
@@ -34,6 +35,12 @@ class TecherSerializer(serializers.ModelSerializer):
         )
      
         return instance
+    
+class TeacherLoginSerializer(serializers.ModelSerializer):
+  email = serializers.EmailField(max_length=255)
+  class Meta:
+    model = models.Teacher
+    fields = ['email', 'password']
 
 
 class TeacherDashboardSerializer(serializers.ModelSerializer):

@@ -12,14 +12,30 @@ from rest_framework import generics
 from rest_framework import permissions
 from rest_framework.pagination import PageNumberPagination
 import json
+from rest_framework.exceptions import AuthenticationFailed
 
+from django.utils.decorators import method_decorator
 from json.decoder import JSONDecodeError
-
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import status
 from django.db.models import Q
 
+# jwt--
+from django.contrib.auth import authenticate
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+
 # pagination class for pagination
+
+
+def get_tokens_for_user(user):
+  refresh = RefreshToken.for_user(user)
+  return {
+      'refresh': str(refresh),
+      'access': str(refresh.access_token),
+  }
+
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 4
     page_size_query_param = 'page_size'
@@ -69,6 +85,7 @@ class CategoryList(generics.ListCreateAPIView):
    # permission_classes = [permissions.IsAuthenticated]
 
 class CourseList(APIView):
+    permission_classes=[IsAuthenticated]
     def get(self, request):
         queryset = self.get_queryset()
         serializer = CourseSerializer(queryset, many=True)
@@ -215,9 +232,9 @@ class TeacherCourseDetail(APIView):
 
 # it responsible for handle frontened request means if login information is match then it response True otherwise False
 
-@csrf_exempt
-def teacher_login(request):
-    if request.method == 'POST':
+# @method_decorator(csrf_exempt, name='dispatch')
+class teacher_login(APIView):
+    def post(self, request):
         try:
             data = json.loads(request.body)
             email = data.get('email')
@@ -226,19 +243,20 @@ def teacher_login(request):
             print(email, password)
             
             try:
-                teacher_data = models.Teacher.objects.filter(email=email, password=password).first()
-            except models.Teacher.DoesNotExist:
+                teacher_data = models.Teacher.objects.get(email=email, password=password)
+            except ObjectDoesNotExist:
                 teacher_data = None
 
             if teacher_data:
-                return JsonResponse({'bool': True,'teacher_id':teacher_data.id})
+                token = get_tokens_for_user(teacher_data)
+                return JsonResponse({'token':token,'bool': True, 'teacher_id': teacher_data.id, 'hii': 'hello'})
             else:
                 return JsonResponse({'bool': False})
         except JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON data'}, status=400)
-    else:
-        return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
 
+    def get(self, request):
+        return JsonResponse({'error': 'GET method not allowed'}, status=405)
 
 # will---
       #   email = request.POST.get('email')
