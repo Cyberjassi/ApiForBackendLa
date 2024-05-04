@@ -30,7 +30,7 @@ urlpatterns = [
     path('student/dashboard/<int:pk>/',views.StudentDashboard.as_view()),
 
     path('student/change-password/<int:student_id>/',views.student_change_password),
-    path('student-login/',views.student_login),
+    path('student-login/',views.student_login.as_view()),
     path('student-enroll-course/',views.StudentEnrollCourseList.as_view()),
     path('fatch-enroll-status/<int:student_id>/<int:course_id>',views.fatch_enroll_status),
     path('fatch-all-enrolled-students/<int:teacher_id>',views.EnrolledStudentList.as_view()),

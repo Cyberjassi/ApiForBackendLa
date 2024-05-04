@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 import os
+import cloudinary_storage
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,7 +48,9 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.flatpages',
     'main','rest_framework',
-    'rest_framework_simplejwt'
+    'rest_framework_simplejwt',
+    'cloudinary', 
+    'cloudinary_storage'
     
     # 'rest_framework.authtoken'
 ]
@@ -161,23 +164,7 @@ CORS_ALLOW_ALL_ORIGINS= True
 
 
 # JWT Settings
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
-    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
-
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
-    'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
-
-    'JTI_CLAIM': 'jti',
-
-}
+SIMPLE_JWT = { 'ACCESS_TOKEN_LIFETIME': timedelta(days=5), 'REFRESH_TOKEN_LIFETIME': timedelta(days=1), }
 
 
 
@@ -198,3 +185,12 @@ EMAIL_HOST_USER='jaswantkhatri30@gmail.com'
 EMAIL_HOST_PASSWORD = 'xrjtzwoqxjqohomp'
 
 # xrjt zwoq xjqo homp
+
+# FOR CLOUDINARY_STORAGE
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME':'dr9wiqs2y',
+    'API_KEY':'231155616976154',
+    'API_SECRET':'dSdlO9jD1ANOtvwIJ2u3avKWtZc'
+}
+
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"

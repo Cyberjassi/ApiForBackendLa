@@ -26,6 +26,9 @@ from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 
+# import coustom permisttion
+from .permission import TeacherStudent
+
 # pagination class for pagination
 
 
@@ -85,8 +88,9 @@ class CategoryList(generics.ListCreateAPIView):
    # permission_classes = [permissions.IsAuthenticated]
 
 class CourseList(APIView):
-    permission_classes=[IsAuthenticated]
+    permission_classes=[TeacherStudent]
     def get(self, request):
+        print("This is kwargs",request.GET.get('role'))
         queryset = self.get_queryset()
         serializer = CourseSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -235,21 +239,48 @@ class TeacherCourseDetail(APIView):
 # @method_decorator(csrf_exempt, name='dispatch')
 class teacher_login(APIView):
     def post(self, request):
+     
         try:
             data = json.loads(request.body)
             email = data.get('email')
             password = data.get('password')
-            print(request.body)
-            print(email, password)
+            print("this is teacher data",request.body)
+            # print(email, password)
             
             try:
-                teacher_data = models.Teacher.objects.get(email=email, password=password)
+                teacher_data = models.Teacher.objects.filter(email=email, password=password).first()
             except ObjectDoesNotExist:
                 teacher_data = None
 
             if teacher_data:
                 token = get_tokens_for_user(teacher_data)
                 return JsonResponse({'token':token,'bool': True, 'teacher_id': teacher_data.id, 'hii': 'hello'})
+            else:
+                return JsonResponse({'bool': False})
+        except JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
+    def get(self, request):
+        return JsonResponse({'error': 'GET method not allowed'}, status=405)
+
+class student_login(APIView):
+    def post(self, request):
+
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            password = data.get('password')
+            print("this is student data ",request.body)
+         
+            
+            try:
+                student_data = models.Student.objects.filter(email=email, password=password).first()
+            except ObjectDoesNotExist:
+                student_data = None
+
+            if student_data:
+                token = get_tokens_for_user(student_data)
+                return JsonResponse({'token':token,'bool': True, 'student_id': student_data.id})
             else:
                 return JsonResponse({'bool': False})
         except JSONDecodeError:
@@ -382,19 +413,19 @@ class TeacherDashboard(generics.RetrieveAPIView):
    queryset = models.Student.objects.all()
    serializer_class=StudentSerializer
 
-
-@csrf_exempt
-def student_login(request):
-    email=request.POST['email']
-    password=request.POST['password']
-    try:
-        studentData = models.Student.objects.get(email=email,password=password)
-    except models.Student.DoesNotExist:
-       studentData=None
-    if studentData:
-       return JsonResponse({'bool':True,'student_id':studentData.id})
-    else:
-       return JsonResponse({'bool':False})
+# will-
+# @csrf_exempt
+# def student_login(request):
+#     email=request.POST['email']
+#     password=request.POST['password']
+#     try:
+#         studentData = models.Student.objects.get(email=email,password=password)
+#     except models.Student.DoesNotExist:
+#        studentData=None
+#     if studentData:
+#        return JsonResponse({'bool':True,'student_id':studentData.id})
+#     else:
+#        return JsonResponse({'bool':False})
     
 @csrf_exempt
 def student_change_password(request,student_id):
