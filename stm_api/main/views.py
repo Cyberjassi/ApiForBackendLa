@@ -88,7 +88,7 @@ class CategoryList(generics.ListCreateAPIView):
    # permission_classes = [permissions.IsAuthenticated]
 
 class CourseList(APIView):
-    permission_classes=[TeacherStudent]
+   #  permission_classes=[TeacherStudent]
     def get(self, request):
         print("This is kwargs",request.GET.get('role'))
         queryset = self.get_queryset()
@@ -461,14 +461,26 @@ class StudentFavoriteCourseList(generics.ListCreateAPIView):
        student = models.Student.objects.get(pk=student_id)
        return models.StudentFavoriteCourse.objects.filter(student=student).distinct()
 
-def fatch_enroll_status(request,student_id,course_id):
-   student = models.Student.objects.filter(id=student_id).first()
-   course = models.Course.objects.filter(id=course_id).first()
-   enrollStatus = models.StudentCourseEnrollment.objects.filter(course=course,student=student).count()
-   if  enrollStatus:
-      return JsonResponse({'bool':True})
-   else:
-      return JsonResponse({'bool':False})
+# instead below-
+# def fatch_enroll_status(request,student_id,course_id):
+#    student = models.Student.objects.filter(id=student_id).first()
+#    course = models.Course.objects.filter(id=course_id).first()
+#    enrollStatus = models.StudentCourseEnrollment.objects.filter(course=course,student=student).count()
+#    if  enrollStatus:
+#       return JsonResponse({'bool':True})
+#    else:
+#       return JsonResponse({'bool':False})
+   
+class fatch_enroll_status(APIView):
+    def get(self, request, student_id, course_id, *args, **kwargs):
+        student = models.Student.objects.filter(id=student_id).first()
+        course = models.Course.objects.filter(id=course_id).first()
+        enroll_status = models.StudentCourseEnrollment.objects.filter(course=course, student=student).count()
+        
+        if enroll_status:
+            return JsonResponse({'bool': True})
+        else:
+            return JsonResponse({'bool': False})
    
 def fatch_favorite_status(request,student_id,course_id):
    student=models.Student.objects.filter(id=student_id).first()
@@ -488,15 +500,15 @@ def fatch_favorite_status(request,student_id,course_id):
    else:
       return JsonResponse({'bool':False})
   
-@csrf_exempt
-def fatch_enroll_status(request,student_id,course_id):
-    student = models.Student.objects.filter(id=student_id).first()
-    course = models.Course.objects.filter(id=course_id).first()
-    enrollStatus=models.StudentCourseEnrollment.objects.filter(course=course,student=student).count()
-    if enrollStatus:
-       return JsonResponse({'bool':True})
-    else:
-       return JsonResponse({'bool':False})
+# @csrf_exempt
+# def fatch_enroll_status(request,student_id,course_id):
+#     student = models.Student.objects.filter(id=student_id).first()
+#     course = models.Course.objects.filter(id=course_id).first()
+#     enrollStatus=models.StudentCourseEnrollment.objects.filter(course=course,student=student).count()
+#     if enrollStatus:
+#        return JsonResponse({'bool':True})
+#     else:
+#        return JsonResponse({'bool':False})
     
 @csrf_exempt
 def remove_favorite_course(request,student_id,course_id):

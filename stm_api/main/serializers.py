@@ -74,7 +74,7 @@ class CourseSerializer(serializers.ModelSerializer):
 class ChapterSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Chapter
-        fields = ['id','course','title','description','video','remarks']
+        fields = ['id','course','title','description','video','video_duration','remarks']
 
     def __init__(self,*args,**kwargs):
         super(ChapterSerializer,self).__init__(*args,**kwargs)
@@ -106,7 +106,9 @@ class StudentSerializer(serializers.ModelSerializer):
 class StudentCourseEnrollSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.StudentCourseEnrollment
-        fields =  ['id','course','student','teacher','enrolled_time']
+        # will-
+        # fields =  ['id','course','student','teacher','enrolled_time']
+        fields =  ['id','course','student','enrolled_time']
     
     def __init__(self, *args,  **kwargs):
         super(StudentCourseEnrollSerializer,self).__init__(*args,**kwargs)

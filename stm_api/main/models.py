@@ -105,6 +105,7 @@ class Chapter(models.Model):
     title=models.CharField(max_length=150)
     description=models.TextField()
     video=models.FileField(upload_to='chapter_videos/',null=True)
+    video_duration=models.DateTimeField(auto_now_add=True)
     remarks=models.TextField(null=True)
     
     class Meta:
@@ -151,7 +152,8 @@ class Student(models.Model):
 class StudentCourseEnrollment(models.Model):
     id = models.AutoField(primary_key=True)
     student =models.ForeignKey(Student,on_delete=models.CASCADE,related_name='enrolled_student')
-    teacher = models.ForeignKey(Teacher,on_delete=models.CASCADE,null=True)
+    # will-
+    # teacher = models.ForeignKey(Teacher,on_delete=models.CASCADE,null=True)
     course =models.ForeignKey(Course,on_delete=models.CASCADE,related_name='enrolled_courses')
     enrolled_time=models.DateTimeField(auto_now_add=True)
     # depth = 1
