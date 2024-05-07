@@ -481,6 +481,17 @@ class fatch_enroll_status(APIView):
             return JsonResponse({'bool': True})
         else:
             return JsonResponse({'bool': False})
+        
+class fatch_rating_status(APIView):
+    def get(self, request, student_id, course_id, *args, **kwargs):
+        student = models.Student.objects.filter(id=student_id).first()
+        course = models.Course.objects.filter(id=course_id).first()
+        ratingStatus = models.CourseRating.objects.filter(course=course, student=student).count()
+        
+        if ratingStatus:
+            return JsonResponse({'bool': True})
+        else:
+            return JsonResponse({'bool': False})
    
 def fatch_favorite_status(request,student_id,course_id):
    student=models.Student.objects.filter(id=student_id).first()
@@ -545,14 +556,19 @@ class CourseRatingList(generics.ListCreateAPIView):
    queryset=models.CourseRating.objects.all()
    serializer_class=CourseRatingSerializer
 
-   def get_queryset(self):
-      if 'popular' in self.request.GET:
-         sql = "SELECT * ,AVG(cr.rating) as avg_rating FROM main_courserating as cr INNER JOIN main_course as c ON cr.course_id=c.id GROUP BY c.id ORDER BY avg_rating desc LIMIT 4"
-         return models.CourseRating.objects.raw(sql)
-      if 'all' in self.request.GET:
-         sql = "SELECT * ,AVG(cr.rating) as avg_rating FROM main_courserating as cr INNER JOIN main_course as c ON cr.course_id=c.id GROUP BY c.id ORDER BY avg_rating desc"
-         return models.CourseRating.objects.raw(sql)
-      return models.CourseRating.objects.filter(course__isnull=False).order_by('-rating')
+   # def get_queryset(self):
+   #    course_id = self.kwargs['course_id']
+   #    course = models.Course.objects.get(pk=course_id)
+   #    return models.CourseRating.objects.filter(course=course)
+
+   # def get_queryset(self):
+   #    if 'popular' in self.request.GET:
+   #       sql = "SELECT * ,AVG(cr.rating) as avg_rating FROM main_courserating as cr INNER JOIN main_course as c ON cr.course_id=c.id GROUP BY c.id ORDER BY avg_rating desc LIMIT 4"
+   #       return models.CourseRating.objects.raw(sql)
+   #    if 'all' in self.request.GET:
+   #       sql = "SELECT * ,AVG(cr.rating) as avg_rating FROM main_courserating as cr INNER JOIN main_course as c ON cr.course_id=c.id GROUP BY c.id ORDER BY avg_rating desc"
+   #       return models.CourseRating.objects.raw(sql)
+   #    return models.CourseRating.objects.filter(course__isnull=False).order_by('-rating')
 
    
 def fatch_rating_status(request,student_id,course_id):

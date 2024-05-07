@@ -42,7 +42,6 @@ urlpatterns = [
 
     path('fatch-rating-status/<int:student_id>/<int:course_id>',views.fatch_rating_status),
 
-    path('fatch-rating-status/<int:student_id>/<int:course_id>',views.fatch_rating_status),
     path('student-add-favorite-course/',views.StudentFavoriteCourseList.as_view()),
     path('student-remove-favorite-course/<int:course_id>/<int:student_id>',views.remove_favorite_course),
     path('fatch-favorite-status/<int:student_id>/<int:course_id>',views.fatch_favorite_status),
