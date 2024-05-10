@@ -31,7 +31,7 @@ from .permission import TeacherStudent
 
 # pagination class for pagination
 
-
+# main
 def get_tokens_for_user(user):
   refresh = RefreshToken.for_user(user)
   return {
@@ -111,7 +111,17 @@ class CourseList(APIView):
             teacher = self.request.GET['teacher']
             teacher = models.Teacher.objects.filter(id=teacher).first()
             queryset = models.Course.objects.filter(techs__icontains=skill_name,teacher=teacher)
-        return queryset
+        elif 'studentId' in self.kwargs:
+           student_id=self.kwargs['studentId']
+           student = models.Student.objects.get(pk=student_id)
+           print("this is student id ;;;;;;;",student)
+           queries=[Q(techs__iendwith=value) for value in student.interested_categories]
+           query=queries.pop()
+           for item in queries:
+              query |= item
+           qs = models.Course.objects.filter(query)
+           return qs
+        return queryset   
     def post(self, request):
         serializer = CourseSerializer(data=request.data)
         if serializer.is_valid():
@@ -409,10 +419,6 @@ class StudentDetail(generics.RetrieveUpdateDestroyAPIView):
    serializer_class=StudentSerializer
 
 
-class TeacherDashboard(generics.RetrieveAPIView):
-   queryset = models.Student.objects.all()
-   serializer_class=StudentSerializer
-
 # will-
 # @csrf_exempt
 # def student_login(request):
@@ -549,7 +555,7 @@ class EnrolledStudentList(generics.ListCreateAPIView):
        student_id=self.kwargs['student_id']
        student = models.Student.objects.get(pk=student_id)
        return models.StudentCourseEnrollment.objects.filter(student=student).distinct()
-    
+
   
 
 class CourseRatingList(generics.ListCreateAPIView):
@@ -605,13 +611,10 @@ class AssignmentList(generics.ListCreateAPIView):
    def get_queryset(self):
         # Retrieve teacher ID from URL kwargs
     student_id = self.kwargs['student_id']
-    teacher_id = self.kwargs['teacher_id']
-
-        
+    teacher_id = self.kwargs['teacher_id'] 
         # Retrieve teacher object based on ID
     student = models.Student.objects.get(pk=student_id)
-    teacher = models.Teacher.objects.get(pk=teacher_id)
-        
+    teacher = models.Teacher.objects.get(pk=teacher_id)  
         # Filter courses by teacher
     return models.StudentAssignment.objects.filter(student=student,teacher=teacher)
    
@@ -625,7 +628,7 @@ class MyAssignmentList(generics.ListCreateAPIView):
     student = models.Student.objects.get(pk=student_id)
     return models.StudentAssignment.objects.filter(student=student)
    
-class UpdateAssignmentList(generics.RetrieveDestroyAPIView):
+class UpdateAssignmentList(generics.RetrieveUpdateDestroyAPIView):
    queryset=models.StudentAssignment.objects.all()
    serializer_class=StudentAssignmentSerializer
 

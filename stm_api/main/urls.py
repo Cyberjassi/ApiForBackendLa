@@ -34,15 +34,18 @@ urlpatterns = [
     path('student-enroll-course/',views.StudentEnrollCourseList.as_view()),
     path('fatch-enroll-status/<int:student_id>/<int:course_id>',views.fatch_enroll_status.as_view()),
     path('fatch-all-enrolled-students/<int:teacher_id>',views.EnrolledStudentList.as_view()),
- 
+
     path('fatch-enrolled-students/<int:course_id>',views.EnrolledStudentList.as_view()),
+
     path('fatch-enrolled-courses/<int:student_id>',views.EnrolledStudentList.as_view()),
+    
     path('fatch-recommended-courses/<int:studentId>',views.CourseList.as_view()),
     path('course-rating/',views.CourseRatingList.as_view()),
-
+ 
     path('fatch-rating-status/<int:student_id>/<int:course_id>',views.fatch_rating_status),
 
     path('student-add-favorite-course/',views.StudentFavoriteCourseList.as_view()),
+
     path('student-remove-favorite-course/<int:course_id>/<int:student_id>',views.remove_favorite_course),
     path('fatch-favorite-status/<int:student_id>/<int:course_id>',views.fatch_favorite_status),
     path('fatch-favorite-courses/<int:student_id>',views.StudentFavoriteCourseList.as_view()),

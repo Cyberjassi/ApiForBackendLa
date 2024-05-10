@@ -14,13 +14,20 @@ from rest_framework.pagination import PageNumberPagination
 import json
 from rest_framework.exceptions import AuthenticationFailed
 
-
+from django.utils.decorators import method_decorator
 from json.decoder import JSONDecodeError
-
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import status
 from django.db.models import Q
 
+# jwt--
+from django.contrib.auth import authenticate
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+
+# import coustom permisttion
+from .permission import TeacherStudent
 
 
 class TeacherList(APIView):
@@ -54,12 +61,11 @@ class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
    serializer_class=TecherSerializer
    # permission_classes = [permissions.IsAuthenticated]
 
-
 class TeacherDashboard(generics.RetrieveAPIView):
    queryset = models.Teacher.objects.all()
    serializer_class=TeacherDashboardSerializer
 
-
+#specific techer course-
 class TeacherCourseList(generics.ListCreateAPIView):
     serializer_class = CourseSerializer
    #  it is use for overide course so that we car retriewe specific course according to teacher id
@@ -112,47 +118,34 @@ class TeacherCourseDetail(APIView):
 
 # it responsible for handle frontened request means if login information is match then it response True otherwise False
 
-@csrf_exempt
-def teacher_login(request):
-    if request.method == 'POST':
+# @method_decorator(csrf_exempt, name='dispatch')
+class teacher_login(APIView):
+    def post(self, request):
+     
         try:
             data = json.loads(request.body)
             email = data.get('email')
             password = data.get('password')
-            print(request.body)
-            print(email, password)
+            print("this is teacher data",request.body)
+            # print(email, password)
             
             try:
                 teacher_data = models.Teacher.objects.filter(email=email, password=password).first()
-            except models.Teacher.DoesNotExist:
+            except ObjectDoesNotExist:
                 teacher_data = None
 
             if teacher_data:
-                return JsonResponse({'bool': True,'teacher_id':teacher_data.id})
+                token = get_tokens_for_user(teacher_data)
+                return JsonResponse({'token':token,'bool': True, 'teacher_id': teacher_data.id, 'hii': 'hello'})
             else:
                 return JsonResponse({'bool': False})
         except JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON data'}, status=400)
-    else:
-        return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
+
+    def get(self, request):
+        return JsonResponse({'error': 'GET method not allowed'}, status=405)
 
 
-# will---
-      #   email = request.POST.get('email')
-      #   password = request.POST.get('password')
-        # Filter teachers with matching email and password
-      #   try:
-      #       teacherData = models.Teacher.objects.filter(email=email, password=password,verify_status=True).first()
-      #   except models.Teacher.DoesNotExist:
-      #      teacherData=None
-      #   if teacherData:
-      #       if not teacherData.verify_status:
-      #          return JsonResponse({'bool': False,'teacher_id':teacherData.id,'msg':'Account is not verified!!'})
-      #       else:
-      #          return JsonResponse({'bool': True,'teacher_id':teacherData.id})
-      #   else:
-      #       return JsonResponse({'bool':False,'msg':'Invalid Email or Password!!!'})
-        
 @csrf_exempt       
 def verify_teacher_via_otp(request,teacher_id):
    otp_digit=request.POST.get('otp_digit')
@@ -162,7 +155,7 @@ def verify_teacher_via_otp(request,teacher_id):
       return JsonResponse({'bool':True,'teacher_id':verify.id})
    else:
       return JsonResponse({'bool':False})
-    
+   
 
 @csrf_exempt
 def teacher_change_password(request,teacher_id):
@@ -177,7 +170,7 @@ def teacher_change_password(request,teacher_id):
        return JsonResponse({'bool':True})
     else:
        return JsonResponse({'bool':False})
-
+    
 class TeacherQuizList(generics.ListCreateAPIView):
     serializer_class = QuizSerializer
 
@@ -190,8 +183,12 @@ class TeacherQuizList(generics.ListCreateAPIView):
         
         # Filter courses by teacher
         return models.Quiz.objects.filter(teacher=teacher)
-
+    
 
 class TeacherQuizDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.Quiz.objects.all()
     serializer_class = QuizSerializer
+   
+
+
+

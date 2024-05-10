@@ -9,15 +9,15 @@ from django.core.mail import send_mail
 class Teacher(models.Model):
     id = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=100)
-    detail=models.TextField(null=True)
     email = models.CharField(max_length=100)
-    password=models.CharField(max_length=100)
+    password=models.CharField(max_length=100,blank=True,null=True)
     qualification=models.CharField(max_length=100)
     mobile_no = models.CharField(max_length=20)
     profile_img=models.ImageField(upload_to='teahcer_profile_imgs/',null=True)
     skills=models.TextField()
     verify_status=models.BooleanField(default=False)
-    otp_digit=models.CharField(max_length=20,null=True)
+    # will-
+    # otp_digit=models.CharField(max_length=20,null=True)
 
     #for shows in panel Table name
     class Meta:
