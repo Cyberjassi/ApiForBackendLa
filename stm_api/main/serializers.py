@@ -89,7 +89,7 @@ class ChapterSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Student
-        fields =  ['id','full_name','email','password','username','interested_categories']
+        fields =  ['id','full_name','email','password','username','interested_categories','profile_img']
         # will---
         # fields =  ['id','full_name','email','profile_img','password','username','interested_categories']
     def __init__(self, *args, **kwargs):

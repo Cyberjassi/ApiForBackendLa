@@ -626,6 +626,8 @@ class MyAssignmentList(generics.ListCreateAPIView):
    def get_queryset(self):
     student_id = self.kwargs['student_id']
     student = models.Student.objects.get(pk=student_id)
+    # Update notification-
+    models.Notification.objects.filter(student=student,notif_for='student',notif_subject='assignment').update(notifiread_status=True)
     return models.StudentAssignment.objects.filter(student=student)
    
 class UpdateAssignmentList(generics.RetrieveUpdateDestroyAPIView):
@@ -639,7 +641,7 @@ class NotificationList(generics.ListCreateAPIView):
    def get_queryset(self):
       student_id=self.kwargs['student_id']
       student = models.Student.objects.get(pk=student_id)
-      return models.Notification.objects.filter(student=student,notif_for='student',notif_subject='assignement',notifiread_status=False)
+      return models.Notification.objects.filter(student=student,notif_for='student',notif_subject='assignment',notifiread_status=False)
    
 
 
