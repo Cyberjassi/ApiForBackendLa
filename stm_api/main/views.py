@@ -111,8 +111,11 @@ class CourseList(APIView):
             teacher = self.request.GET['teacher']
             teacher = models.Teacher.objects.filter(id=teacher).first()
             queryset = models.Course.objects.filter(techs__icontains=skill_name,teacher=teacher)
-        elif 'studentId' in self.kwargs:
-           student_id=self.kwargs['studentId']
+        elif 'searchString' in self.request.GET:
+            search = self.request.GET['searchString']
+            queryset = models.Course.objects.filter(Q(techs__icontains=search)|Q(title__icontains=search))
+        elif 'studentId' in self.request.GET:
+           student_id=self.request.GET['studentId']
            student = models.Student.objects.get(pk=student_id)
            print("this is student id ;;;;;;;",student)
            queries=[Q(techs__iendwith=value) for value in student.interested_categories]
