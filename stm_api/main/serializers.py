@@ -11,7 +11,7 @@ class TecherSerializer(serializers.ModelSerializer):
     # password = serializers.CharField(style={'input_type':'password'},write_only=True)
     class Meta:
         model = models.Teacher
-        fields =  ['id','full_name','email','password','qualification','mobile_no','skills','profile_img','skill_list','teacher_courses']
+        fields =  ['id','full_name','email','password','qualification','mobile_no','skills','profile_img','skill_list','teacher_courses','total_teacher_courses']
         # 'teacher_courses'
         # will-
         # fields =  ['id','full_name','email','password','qualification','mobile_no','skills','otp_digit','profile_img','teacher_courses','skill_list','total_teacher_courses','verify_status']
