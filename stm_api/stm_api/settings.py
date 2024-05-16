@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-x=veo+l0hzo91%*umwotavw4y(!huj2@0850z^_3k95si1r7k*'
+SECRET_KEY =  os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -183,15 +183,15 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER='jaswantkhatri30@gmail.com'
-EMAIL_HOST_PASSWORD = 'xrjtzwoqxjqohomp'
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 # xrjt zwoq xjqo homp
 
 # FOR CLOUDINARY_STORAGE
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME':'dr9wiqs2y',
-    'API_KEY':'231155616976154',
-    'API_SECRET':'dSdlO9jD1ANOtvwIJ2u3avKWtZc'
+    'CLOUD_NAME':os.environ.get("CLOUD_NAME"),
+    'API_KEY':os.environ.get("API_KEY"),
+    'API_SECRET':os.environ.get("API_SECRET")
 }
 
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
