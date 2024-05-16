@@ -2,6 +2,7 @@ from django.db import models
 from django.core import serializers
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.conf import settings
 # from Teacher.models import Teacher
 
 
@@ -53,7 +54,7 @@ class CourseCategory(models.Model):
     class Meta:
         verbose_name_plural = "2. Course Categories"
 
-    def total_course(self):
+    def total_courses(self):
         return Course.objects.filter(category=self).count()
     
     # that is show on CourseCategory data when we put the data
@@ -328,7 +329,7 @@ class Contact(models.Model):
         send_mail(
             "Contact Query",
             "Here is the message.",
-            "jaswantkhatri30@gmail.com",
+            "settings.EMAIL_HOST_USER",
             [self.email],
             fail_silently=False,
             html_message=f"<p>{self.full_name}</p><p>{self.query_txt}</p>"

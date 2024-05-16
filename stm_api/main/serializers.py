@@ -56,7 +56,7 @@ class CategorySerializer(serializers.ModelSerializer):
         model = models.CourseCategory
         # will---
         # fields =  ['id','title','description','total_courses']
-        fields = ['id','title','description']
+        fields = ['id','title','description','total_courses']
 
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:

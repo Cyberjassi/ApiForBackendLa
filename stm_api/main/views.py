@@ -39,7 +39,7 @@ def get_tokens_for_user(user):
       'access': str(refresh.access_token),
   }
 
-class StandardResultsSetPagination(PageNumberPagination):
+class MyPagination(PageNumberPagination):
     page_size = 4
     page_size_query_param = 'page_size'
     max_page_size = 4
@@ -106,15 +106,23 @@ class TeacherDashboard(generics.RetrieveAPIView):
 class CategoryList(generics.ListCreateAPIView):
    queryset=models.CourseCategory.objects.all()
    serializer_class=CategorySerializer
+#    pagination_class = MyPagination
    # permission_classes = [permissions.IsAuthenticated]
 
 class CourseList(APIView):
    #  permission_classes=[TeacherStudent]
+    pagination_class = MyPagination
     def get(self, request):
         print("This is kwargs",request.GET.get('role'))
         queryset = self.get_queryset()
-        serializer = CourseSerializer(queryset, many=True)
-        return Response(serializer.data)
+        # new update-
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
+        #
+        serializer = CourseSerializer(page, many=True)
+        
+        # Return paginated response
+        return paginator.get_paginated_response(serializer.data)
     def get_queryset(self):
         queryset = models.Course.objects.all()
         # Filter by 'result' query parameter
