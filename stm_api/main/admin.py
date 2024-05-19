@@ -3,7 +3,7 @@ from .models import Teacher, CourseCategory, Course, Chapter, Student, StudentCo
 
 @admin.register(Teacher)
 class TeacherAdmin(admin.ModelAdmin):
-    fields = ['full_name','email','password','qualification','mobile_no','profile_img','skills','verify_status']
+    fields = ['full_name','email','password','qualification','mobile_no','profile_img','skills','verify_status','otp_digit']
 
 @admin.register(CourseCategory)
 class CourseCategoryAdmin(admin.ModelAdmin):

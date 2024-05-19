@@ -45,6 +45,9 @@ class MyPagination(PageNumberPagination):
     max_page_size = 4
 
 
+
+# Teacher-
+
 # old-
 # class TeacherList(APIView):
 #     def get(self, request):
@@ -61,7 +64,10 @@ class MyPagination(PageNumberPagination):
 #             return Response(serializer.data, status=status.HTTP_201_CREATED)
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+#mt
 class TeacherList(APIView):
+    pagination_class = MyPagination  # Assuming MyPagination is your custom pagination class
+
     def get(self, request):
         if 'popular' in request.GET:
             # Custom SQL query to get teachers ordered by the popularity of their courses
@@ -71,8 +77,12 @@ class TeacherList(APIView):
         else:
             queryset = models.Teacher.objects.all()
 
-        serializer = TecherSerializer(queryset, many=True)
-        return Response(serializer.data)
+        # Pagination
+        paginator = self.pagination_class()
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+        
+        serializer = TecherSerializer(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
         serializer = TecherSerializer(data=request.data)
@@ -97,11 +107,104 @@ class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
    serializer_class=TecherSerializer
    # permission_classes = [permissions.IsAuthenticated]
 
-
 class TeacherDashboard(generics.RetrieveAPIView):
    queryset = models.Teacher.objects.all()
    serializer_class=TeacherDashboardSerializer
 
+#mt
+class TeacherCourseList(generics.ListCreateAPIView):
+    serializer_class = CourseSerializer
+   #  it is use for overide course so that we car retriewe specific course according to teacher id
+    def get_queryset(self):
+        # Retrieve teacher ID from URL kwargs
+        teacher_id = self.kwargs['teacher_id']
+        
+        # Retrieve teacher object based on ID
+        teacher = models.Teacher.objects.get(pk=teacher_id)
+        
+        # Filter courses by teacher
+        return models.Course.objects.filter(teacher=teacher)
+
+#through that teacher can do curd
+
+class TeacherCourseDetail(APIView):
+    def get_object(self, pk):
+        try:
+            return models.Course.objects.get(pk=pk)
+        except models.Course.DoesNotExist:
+            raise Http404
+    def get(self, request, pk, format=None):
+        course = self.get_object(pk)
+        serializer = CourseSerializer(course)
+        return Response(serializer.data)
+    def put(self, request, pk, format=None):
+        course = self.get_object(pk)
+        serializer = CourseSerializer(course, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def patch(self, request, pk, format=None):
+        course = self.get_object(pk)
+        serializer = CourseSerializer(course, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def delete(self, request, pk, format=None):
+        course = self.get_object(pk)
+        course.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+# will-
+# class TeacherCourseDetail(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = models.Course.objects.all()
+#     serializer_class = CourseSerializer
+
+# it responsible for handle frontened request means if login information is match then it response True otherwise False
+
+# @method_decorator(csrf_exempt, name='dispatch')
+
+# change and will itself-
+class teacher_login(APIView):
+    def post(self, request):
+     
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            password = data.get('password')
+            print("this is teacher data",request.body)
+            # print(email, password)
+            
+            try:
+                teacher_data = models.Teacher.objects.filter(email=email, password=password).first()
+            except ObjectDoesNotExist:
+                teacher_data = None
+
+            if teacher_data:
+                if not teacher_data.verify_status:
+                    return JsonResponse({'bool': False, 'msg': 'Accuount is not verified'})
+                else:
+                    token = get_tokens_for_user(teacher_data)
+                    return JsonResponse({'token':token,'bool': True, 'teacher_id': teacher_data.id})
+            else:
+                return JsonResponse({'bool': False,'msg':'Invalied Email or password'})
+        except JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
+    def get(self, request):
+        return JsonResponse({'error': 'GET method not allowed'}, status=405)
+    
+     
+class verify_teacher_via_otp(APIView):
+    def post(self, request, teacher_id):
+        otp_digit = request.data.get('otp_digit')
+        print(otp_digit)  # Using request.data for POST data
+        verify = models.Teacher.objects.filter(id=teacher_id, otp_digit=otp_digit).first()
+        if verify:
+            models.Teacher.objects.filter(id=teacher_id, otp_digit=otp_digit).update(verify_status=True)
+            return JsonResponse({'bool': True, 'teacher_id': verify.id})
+        else:
+            return JsonResponse({'bool': False})
 
 class CategoryList(generics.ListCreateAPIView):
    queryset=models.CourseCategory.objects.all()
@@ -226,84 +329,8 @@ class CourseDetailView(generics.RetrieveAPIView):
    queryset = models.Course.objects.all()
    serializer_class = CourseSerializer
 #specific techer course-
-class TeacherCourseList(generics.ListCreateAPIView):
-    serializer_class = CourseSerializer
-   #  it is use for overide course so that we car retriewe specific course according to teacher id
-    def get_queryset(self):
-        # Retrieve teacher ID from URL kwargs
-        teacher_id = self.kwargs['teacher_id']
-        
-        # Retrieve teacher object based on ID
-        teacher = models.Teacher.objects.get(pk=teacher_id)
-        
-        # Filter courses by teacher
-        return models.Course.objects.filter(teacher=teacher)
-
-#through that teacher can do curd
-
-class TeacherCourseDetail(APIView):
-    def get_object(self, pk):
-        try:
-            return models.Course.objects.get(pk=pk)
-        except models.Course.DoesNotExist:
-            raise Http404
-    def get(self, request, pk, format=None):
-        course = self.get_object(pk)
-        serializer = CourseSerializer(course)
-        return Response(serializer.data)
-    def put(self, request, pk, format=None):
-        course = self.get_object(pk)
-        serializer = CourseSerializer(course, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    def patch(self, request, pk, format=None):
-        course = self.get_object(pk)
-        serializer = CourseSerializer(course, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    def delete(self, request, pk, format=None):
-        course = self.get_object(pk)
-        course.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-# will-
-# class TeacherCourseDetail(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = models.Course.objects.all()
-#     serializer_class = CourseSerializer
-   
 
 
-# it responsible for handle frontened request means if login information is match then it response True otherwise False
-
-# @method_decorator(csrf_exempt, name='dispatch')
-class teacher_login(APIView):
-    def post(self, request):
-     
-        try:
-            data = json.loads(request.body)
-            email = data.get('email')
-            password = data.get('password')
-            print("this is teacher data",request.body)
-            # print(email, password)
-            
-            try:
-                teacher_data = models.Teacher.objects.filter(email=email, password=password).first()
-            except ObjectDoesNotExist:
-                teacher_data = None
-
-            if teacher_data:
-                token = get_tokens_for_user(teacher_data)
-                return JsonResponse({'token':token,'bool': True, 'teacher_id': teacher_data.id, 'hii': 'hello'})
-            else:
-                return JsonResponse({'bool': False})
-        except JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
-
-    def get(self, request):
-        return JsonResponse({'error': 'GET method not allowed'}, status=405)
 
 class student_login(APIView):
     def post(self, request):
@@ -347,17 +374,24 @@ class student_login(APIView):
       #   else:
       #       return JsonResponse({'bool':False,'msg':'Invalid Email or Password!!!'})
         
-@csrf_exempt       
-def verify_teacher_via_otp(request,teacher_id):
-   otp_digit=request.POST.get('otp_digit')
-   verify = models.Teacher.objects.filter(id=teacher_id,otp_digit=otp_digit).first()
-   if verify:
-      models.Teacher.objects.filter(id=teacher_id,otp_digit=otp_digit).update(verify_status=True)
-      return JsonResponse({'bool':True,'teacher_id':verify.id})
-   else:
-      return JsonResponse({'bool':False})
+@csrf_exempt
+def teacher_change_password(request,teacher_id):
+ 
+    password=request.POST['password']
+    try:
+        teacherData = models.Teacher.objects.get(id=teacher_id)
+    except models.Teacher.DoesNotExist:
+       teacherData=None
+    if teacherData:
+       models.Teacher.objects.filter(id=teacher_id).update(password=password)
+       return JsonResponse({'bool':True})
+    else:
+       return JsonResponse({'bool':False})
+    
+#end Teacher
    
-   
+
+#Chapter -
 class ChapterList(APIView):
     def get(self, request):
         queryset = models.Chapter.objects.all()
@@ -428,7 +462,10 @@ class CourseChapterList(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
    
+# chapter end
 
+
+# Student-
 # class StudentList(generics.ListCreateAPIView):
 #    queryset=models.Student.objects.all()
 #    serializer_class=StudentSerializer
@@ -464,7 +501,8 @@ class StudentDetail(generics.RetrieveUpdateDestroyAPIView):
 #        return JsonResponse({'bool':True,'student_id':studentData.id})
 #     else:
 #        return JsonResponse({'bool':False})
-    
+
+#mt 
 @csrf_exempt
 def student_change_password(request,student_id):
  
@@ -479,7 +517,6 @@ def student_change_password(request,student_id):
     else:
        return JsonResponse({'bool':False})
     
-
 class StudentDashboard(generics.RetrieveAPIView):
    queryset = models.Student.objects.all()
    serializer_class=StudentDashboardSerializer
@@ -487,7 +524,6 @@ class StudentDashboard(generics.RetrieveAPIView):
 class StudentEnrollCourseList(generics.ListCreateAPIView):
    queryset=models.StudentCourseEnrollment.objects.all()
    serializer_class=StudentCourseEnrollSerializer
-
 
 class StudentFavoriteCourseList(generics.ListCreateAPIView):
    queryset = models.StudentFavoriteCourse.objects.all()
@@ -498,6 +534,25 @@ class StudentFavoriteCourseList(generics.ListCreateAPIView):
        student_id=self.kwargs['student_id']
        student = models.Student.objects.get(pk=student_id)
        return models.StudentFavoriteCourse.objects.filter(student=student).distinct()
+
+# end Student
+
+
+#study material
+class StudyMaterialList(generics.ListCreateAPIView):
+   serializer_class = StudyMaterialSerializer
+
+   def get_queryset(self):
+    course_id = self.kwargs['course_id']
+    course = models.Course.objects.get(pk=course_id)
+    return models.StudyMaterial.objects.filter(course=course)
+   
+class StudyMaterialDetailView(generics.RetrieveUpdateDestroyAPIView):
+   queryset = models.StudyMaterial.objects.all()
+   serializer_class = StudyMaterialSerializer
+
+#end study material
+
 
 # instead below-
 # def fatch_enroll_status(request,student_id,course_id):
@@ -591,6 +646,7 @@ class EnrolledStudentList(generics.ListCreateAPIView):
   
 
 class CourseRatingList(generics.ListCreateAPIView):
+   pagination_class= MyPagination
    queryset=models.CourseRating.objects.all()
    serializer_class=CourseRatingSerializer
 
@@ -619,22 +675,6 @@ def fatch_rating_status(request,student_id,course_id):
        return JsonResponse({'bool':False})
     
 
-@csrf_exempt
-def teacher_change_password(request,teacher_id):
- 
-    password=request.POST['password']
-    try:
-        teacherData = models.Teacher.objects.get(id=teacher_id)
-    except models.Teacher.DoesNotExist:
-       teacherData=None
-    if teacherData:
-       models.Teacher.objects.filter(id=teacher_id).update(password=password)
-       return JsonResponse({'bool':True})
-    else:
-       return JsonResponse({'bool':False})
-    
-
-
 # it return us particular teacher and student assignment
 class AssignmentList(generics.ListCreateAPIView):
    queryset=models.StudentAssignment.objects.all()
@@ -649,8 +689,7 @@ class AssignmentList(generics.ListCreateAPIView):
     teacher = models.Teacher.objects.get(pk=teacher_id)  
         # Filter courses by teacher
     return models.StudentAssignment.objects.filter(student=student,teacher=teacher)
-   
-   
+     
 class MyAssignmentList(generics.ListCreateAPIView):
    queryset=models.StudentAssignment.objects.all()
    serializer_class=StudentAssignmentSerializer
@@ -675,13 +714,35 @@ class NotificationList(generics.ListCreateAPIView):
       student = models.Student.objects.get(pk=student_id)
       return models.Notification.objects.filter(student=student,notif_for='student',notif_subject='assignment',notifiread_status=False)
    
+   
+
+def update_view(request,course_id):
+   queryset=models.Course.objects.filter(pk=course_id).first()
+   queryset.course_views+=1
+   queryset.save()
+   return JsonResponse({'views':queryset.course_views})
+
+class FaqList(generics.ListAPIView):
+   queryset=models.FAQ.objects.all()
+   serializer_class=FaqSerializer
+
+class FlatePageList(generics.ListAPIView):
+   queryset = FlatPage.objects.all()
+   serializer_class=FlatPagesSerializer
+
+class FlatePageDetail(generics.RetrieveAPIView):
+   queryset = FlatPage.objects.all()
+   serializer_class=FlatPagesSerializer
+   
+class ContactList(generics.ListCreateAPIView):
+   queryset=models.Contact.objects.all()
+   serializer_class=ContactSerializer
 
 
+# quiz-
 class Quizlist(generics.ListCreateAPIView):
    queryset = models.Quiz.objects.all()
    serializer_class = QuizSerializer
-
-
 
 class TeacherQuizList(generics.ListCreateAPIView):
     serializer_class = QuizSerializer
@@ -696,7 +757,6 @@ class TeacherQuizList(generics.ListCreateAPIView):
         # Filter courses by teacher
         return models.Quiz.objects.filter(teacher=teacher)
     
-
 class TeacherQuizDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.Quiz.objects.all()
     serializer_class = QuizSerializer
@@ -704,7 +764,6 @@ class TeacherQuizDetail(generics.RetrieveUpdateDestroyAPIView):
 class QuizDetailView(generics.RetrieveUpdateDestroyAPIView):
    queryset = models.Quiz.objects.all()
    serializer_class = QuizSerializer
-
 
 class QuizQuestionList(generics.ListCreateAPIView):
    serializer_class = QuestionSerializer
@@ -730,7 +789,6 @@ class CourseQuizList(generics.ListCreateAPIView):
          course = models.Course.objects.get(pk=course_id)
          return models.CourseQuiz.objects.filter(course=course)
 
-
 def fetch_quiz_assign_status(request,quiz_id,course_id):
    quiz = models.Quiz.objects.filter(id=quiz_id).first()
    course=models.Course.objects.filter(id=course_id).first()
@@ -754,8 +812,6 @@ def fetch_quiz_result(request,quiz_id,student_id):
 
    return JsonResponse({'total_questions':total_questions,'total_attempted_questions':total_attempted_questions,'total_correct_questions':total_correct_questions})
    
-
-
 class AttemptQuizList(generics.ListCreateAPIView):
    queryset=models.AttempQuiz.objects.all()
    serializer_class=AttempQuizSerializer
@@ -775,8 +831,6 @@ def fetch_quiz_attempt_status(request,quiz_id,student_id):
    else:
       return JsonResponse({'bool':False})
       
-      
-
 def fetch_quiz_attempt_status(request,quiz_id,student_id):
    quiz = models.Quiz.objects.filter(id=quiz_id).first()
    student=models.Student.objects.filter(id=student_id).first()
@@ -785,45 +839,3 @@ def fetch_quiz_attempt_status(request,quiz_id,student_id):
       return JsonResponse({'bool':True})
    else:
       return JsonResponse({'bool':False})
-   
-
-class StudyMaterialList(generics.ListCreateAPIView):
-   serializer_class = StudyMaterialSerializer
-
-   def get_queryset(self):
-    course_id = self.kwargs['course_id']
-    course = models.Course.objects.get(pk=course_id)
-    return models.StudyMaterial.objects.filter(course=course)
-   
-class StudyMaterialDetailView(generics.RetrieveUpdateDestroyAPIView):
-   queryset = models.StudyMaterial.objects.all()
-   serializer_class = StudyMaterialSerializer
-
-def update_view(request,course_id):
-   queryset=models.Course.objects.filter(pk=course_id).first()
-   queryset.course_views+=1
-   queryset.save()
-   return JsonResponse({'views':queryset.course_views})
-
-
-
-class FaqList(generics.ListAPIView):
-   queryset=models.FAQ.objects.all()
-   serializer_class=FaqSerializer
-
-
-class FlatePageList(generics.ListAPIView):
-   queryset = FlatPage.objects.all()
-   serializer_class=FlatPagesSerializer
-
-class FlatePageDetail(generics.RetrieveAPIView):
-   queryset = FlatPage.objects.all()
-   serializer_class=FlatPagesSerializer
-   
-
-class ContactList(generics.ListCreateAPIView):
-   queryset=models.Contact.objects.all()
-   serializer_class=ContactSerializer
-
-
-

@@ -1,5 +1,6 @@
 from django.db import models
 from django.core import serializers
+from main import models
 
 
 class Teacher(models.Model):
@@ -26,14 +27,14 @@ class Teacher(models.Model):
         return skill_list
     
     def total_teacher_courses(self):
-        total_courses = Course.objects.filter(teacher=self).count()
+        total_courses = models.Course.objects.filter(teacher=self).count()
         return total_courses
     
     def total_teacher_chapters(self):
-        total_chapters = Chapter.objects.filter(course__teacher=self).count()
+        total_chapters = models.Chapter.objects.filter(course__teacher=self).count()
         return total_chapters
     
     def total_teacher_students(self):
-        total_students = StudentCourseEnrollment.objects.filter(course__teacher=self).count()
+        total_students = models.StudentCourseEnrollment.objects.filter(course__teacher=self).count()
         return total_students
 

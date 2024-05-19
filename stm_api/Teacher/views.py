@@ -31,20 +31,31 @@ from .permission import TeacherStudent
 
 
 class TeacherList(APIView):
+    pagination_class = MyPagination  # Assuming MyPagination is your custom pagination class
+
     def get(self, request):
-        queryset = models.Teacher.objects.all()
-        serializer = TecherSerializer(queryset, many=True)
-        return Response(serializer.data)
+        if 'popular' in request.GET:
+            # Custom SQL query to get teachers ordered by the popularity of their courses
+            # main is our app name in that query
+            sql = "SELECT *, COUNT(c.id) as total_course FROM main_teacher as t INNER JOIN main_course as c ON c.teacher_id=t.id GROUP BY t.id ORDER BY total_course desc"
+            queryset = models.Teacher.objects.raw(sql)
+        else:
+            queryset = models.Teacher.objects.all()
+
+        # Pagination
+        paginator = self.pagination_class()
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+        
+        serializer = TecherSerializer(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
-        
-        print("this is data from forntend",request.data)
         serializer = TecherSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-# change-
+# # change-
 # class TeacherList(generics.ListCreateAPIView):
 #    queryset=models.Teacher.objects.all()
 #    serializer_class=TecherSerializer
@@ -56,6 +67,7 @@ class TeacherList(APIView):
    #    if 'popular' in self.request.GET:
    #       sql="SELECT *,COUNT(c.id) as total_course FROM main_teacher as t INNER JOIN main_course as c ON c.teacher_id=t.id GROUP BY t.id ORDER BY total_course desc"
    #       return models.Teacher.objects.raw(sql)
+
 class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
    queryset=models.Teacher.objects.all()
    serializer_class=TecherSerializer
@@ -171,24 +183,9 @@ def teacher_change_password(request,teacher_id):
     else:
        return JsonResponse({'bool':False})
     
-class TeacherQuizList(generics.ListCreateAPIView):
-    serializer_class = QuizSerializer
 
-    def get_queryset(self):
-        # Retrieve teacher ID from URL kwargs
-        teacher_id = self.kwargs['teacher_id']
-        
-        # Retrieve teacher object based on ID
-        teacher = models.Teacher.objects.get(pk=teacher_id)
-        
-        # Filter courses by teacher
-        return models.Quiz.objects.filter(teacher=teacher)
     
 
-class TeacherQuizDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = models.Quiz.objects.all()
-    serializer_class = QuizSerializer
-   
 
 
 

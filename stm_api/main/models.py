@@ -7,6 +7,9 @@ from django.conf import settings
 
 
 
+#
+#
+#
 class Teacher(models.Model):
     id = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=100)
@@ -17,8 +20,7 @@ class Teacher(models.Model):
     profile_img=models.ImageField(upload_to='teahcer_profile_imgs/',null=True)
     skills=models.TextField()
     verify_status=models.BooleanField(default=False)
-    # will-
-    # otp_digit=models.CharField(max_length=20,null=True)
+    otp_digit=models.CharField(max_length=20,null=True)
 
     #for shows in panel Table name
     class Meta:
@@ -42,6 +44,11 @@ class Teacher(models.Model):
     def total_teacher_students(self):
         total_students = StudentCourseEnrollment.objects.filter(course__teacher=self).count()
         return total_students
+    
+    
+
+        
+
 
 
 
@@ -106,7 +113,7 @@ class Chapter(models.Model):
     title=models.CharField(max_length=150)
     description=models.TextField()
     video=models.FileField(upload_to='chapter_videos/',null=True)
-    video_duration=models.DateTimeField(auto_now_add=True)
+    video_duration=models.DateTimeField(auto_now_add=True,null=True)
     remarks=models.TextField(null=True)
     
     class Meta:
@@ -338,3 +345,12 @@ class Contact(models.Model):
     class Meta:
         verbose_name_plural="17. Contact Queries"
 
+class TeacherStudentChat(models.Model):
+    teacher = models.ForeignKey(Teacher,on_delete=models.CASCADE)
+    student = models.ForeignKey(Student,on_delete=models.CASCADE)
+    msg_text = models.TextField()
+    msg_from = models.CharField(max_length=100)
+    msg_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = "18. Teacher Student Messages"

@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'main','rest_framework',
     'rest_framework_simplejwt',
     'cloudinary', 
-    'cloudinary_storage'
+    'cloudinary_storage',
+    # 'Teacher'
     
     # 'rest_framework.authtoken'
 ]
