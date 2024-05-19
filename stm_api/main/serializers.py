@@ -82,7 +82,7 @@ class CourseRatingSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Student
-        fields =  ['id','full_name','email','password','username','interested_categories','profile_img']
+        fields =  ['id','full_name','email','password','username','interested_categories','profile_img','verify_status','otp_digit']
         # will---
         # fields =  ['id','full_name','email','profile_img','password','username','interested_categories']
     def __init__(self, *args, **kwargs):
@@ -91,6 +91,21 @@ class StudentSerializer(serializers.ModelSerializer):
         self.Meta.depth=0
         if request and request.method == 'GET':
             self.Meta.depth=2
+
+    def create(self, validated_data):
+        email = validated_data.get('email')
+        otp_digit = validated_data.get('otp_digit')
+        instance = super(StudentSerializer, self).create(validated_data)
+        send_mail(
+            "Verify Account",
+            "Please Verify Your Account",
+            "settings.EMAIL_HOST_USER",
+            [email],  # Use 'email' instead of 'self.email'
+            fail_silently=False,
+            html_message=f"<p>Your OTP is </p><p>{otp_digit}</p>"  # Use 'otp_digit' instead of 'self.otp_digit'
+        )
+        return instance
+
 
 # class CourseEnrollSerializer(serializers.ModelSerializer):
 #     class Meta:

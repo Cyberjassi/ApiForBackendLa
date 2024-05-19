@@ -20,11 +20,13 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import status
 from django.db.models import Q
+from django.core.mail import send_mail
 
 # jwt--
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+
 
 # import coustom permisttion
 from .permission import TeacherStudent
@@ -205,6 +207,26 @@ class verify_teacher_via_otp(APIView):
             return JsonResponse({'bool': True, 'teacher_id': verify.id})
         else:
             return JsonResponse({'bool': False})
+        
+class teacher_forgot_password(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        print(email)  # Using request.data for POST data
+        verify = models.Teacher.objects.filter(email=email).first()
+        if verify:
+            link=f"http://localhost:3000/teacher-change-password/{verify.id}/"
+            send_mail(
+                "Change Password",
+                "Please Verify Your Account",
+                "settings.EMAIL_HOST_USER",
+                [email],  # Use 'email' instead of 'self.email'
+                fail_silently=False,
+                html_message=f"<p>Your OTP is </p><p>{link}</p>"  # Use 'otp_digit' instead of 'self.otp_digit'
+        )
+            return JsonResponse({'bool': True, 'msg': 'please check your email'})
+        else:
+            return JsonResponse({'bool': False,'msg':'Invalid Email!!'})
+
 
 class CategoryList(generics.ListCreateAPIView):
    queryset=models.CourseCategory.objects.all()
@@ -334,13 +356,13 @@ class CourseDetailView(generics.RetrieveAPIView):
 
 class student_login(APIView):
     def post(self, request):
-
+     
         try:
             data = json.loads(request.body)
             email = data.get('email')
             password = data.get('password')
-            print("this is student data ",request.body)
-         
+            print("this is student data",request.body)
+            # print(email, password)
             
             try:
                 student_data = models.Student.objects.filter(email=email, password=password).first()
@@ -348,10 +370,13 @@ class student_login(APIView):
                 student_data = None
 
             if student_data:
-                token = get_tokens_for_user(student_data)
-                return JsonResponse({'token':token,'bool': True, 'student_id': student_data.id})
+                if not student_data.verify_status:
+                    return JsonResponse({'bool': False, 'msg': 'Accuount is not verified'})
+                else:
+                    token = get_tokens_for_user(student_data)
+                    return JsonResponse({'token':token,'bool': True, 'student_id': student_data.id})
             else:
-                return JsonResponse({'bool': False})
+                return JsonResponse({'bool': False,'msg':'Invalied Email or password'})
         except JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON data'}, status=400)
 
@@ -373,20 +398,35 @@ class student_login(APIView):
       #          return JsonResponse({'bool': True,'teacher_id':teacherData.id})
       #   else:
       #       return JsonResponse({'bool':False,'msg':'Invalid Email or Password!!!'})
+
+
+class verify_student_via_otp(APIView):
+    def post(self, request, student_id):
+        otp_digit = request.data.get('otp_digit')
+        print(otp_digit)  # Using request.data for POST data
+        verify = models.Student.objects.filter(id=student_id, otp_digit=otp_digit).first()
+        if verify:
+            models.Student.objects.filter(id=student_id, otp_digit=otp_digit).update(verify_status=True)
+            return JsonResponse({'bool': True, 'teacher_id': verify.id})
+        else:
+            return JsonResponse({'bool': False})
         
 @csrf_exempt
-def teacher_change_password(request,teacher_id):
- 
-    password=request.POST['password']
-    try:
-        teacherData = models.Teacher.objects.get(id=teacher_id)
-    except models.Teacher.DoesNotExist:
-       teacherData=None
-    if teacherData:
-       models.Teacher.objects.filter(id=teacher_id).update(password=password)
-       return JsonResponse({'bool':True})
+def teacher_change_password(request, teacher_id):
+    if request.method == 'POST':
+        try:
+            password = request.POST['password']
+            teacherData = models.Teacher.objects.get(id=teacher_id)
+            teacherData.password = password
+            teacherData.save()
+            return JsonResponse({'bool': True, 'msg': 'Password has been changed!'})
+        except models.Teacher.DoesNotExist:
+            return JsonResponse({'bool': False, 'msg': 'Teacher not found!'})
+        except KeyError:
+            return JsonResponse({'bool': False, 'msg': 'Password field is missing from the request!'})
     else:
-       return JsonResponse({'bool':False})
+        return JsonResponse({'bool': False, 'msg': 'Invalid request method!'})
+
     
 #end Teacher
    

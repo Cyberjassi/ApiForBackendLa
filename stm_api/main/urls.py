@@ -14,6 +14,8 @@ urlpatterns = [
     path('verify-teacher/<int:teacher_id>/',views.verify_teacher_via_otp.as_view()),
     path('teacher-courses/<int:teacher_id>',views.TeacherCourseList.as_view()),
     path('teacher-courses-detail/<int:pk>',views.TeacherCourseDetail.as_view()),
+    path('teacher-forgot-password/',views.teacher_forgot_password.as_view()),
+    path('teacher-change-password/<int:teacher_id>/',views.teacher_change_password),
 
 #Courses-
     path('course/',views.CourseList.as_view()),
@@ -31,6 +33,7 @@ urlpatterns = [
 # Students-
     path('student/',views.StudentList.as_view()),
     path('student/<int:pk>/',views.StudentDetail.as_view()),
+    path('verify-student/<int:student_id>/',views.verify_student_via_otp.as_view()),
     path('student/dashboard/<int:pk>/',views.StudentDashboard.as_view()),
     path('student/change-password/<int:student_id>/',views.student_change_password),
     path('student-login/',views.student_login.as_view()),
