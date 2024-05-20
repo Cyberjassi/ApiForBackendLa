@@ -226,6 +226,25 @@ class teacher_forgot_password(APIView):
             return JsonResponse({'bool': True, 'msg': 'please check your email'})
         else:
             return JsonResponse({'bool': False,'msg':'Invalid Email!!'})
+        
+class teacher_change_password(APIView):
+    def get(self, request, teacher_id):
+            return JsonResponse({'bool': False, 'msg': 'Get Method not Allowed!'})
+
+    def post(self, request, teacher_id):
+        try:
+            password = request.data.get('password')
+            if password is None:
+                return JsonResponse({'bool': False, 'msg': 'Password field is missing from the request!'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            teacher_data = models.Teacher.objects.get(id=teacher_id)
+            teacher_data.password = password
+            teacher_data.save()
+            return JsonResponse({'bool': True, 'msg': 'Password has been changed!'})
+        
+        except models.Teacher.DoesNotExist:
+            return JsonResponse({'bool': False, 'msg': 'Teacher not found!'}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 class CategoryList(generics.ListCreateAPIView):
@@ -411,21 +430,45 @@ class verify_student_via_otp(APIView):
         else:
             return JsonResponse({'bool': False})
         
-@csrf_exempt
-def teacher_change_password(request, teacher_id):
-    if request.method == 'POST':
+class student_forgot_password(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        print(email)  # Using request.data for POST data
+        verify = models.Student.objects.filter(email=email).first()
+        print(verify.id)
+        if verify:
+            link=f"http://localhost:3000/student-change-password/{verify.id}/"
+            send_mail(
+                "Change Password",
+                "Please Verify Your Account",
+                "settings.EMAIL_HOST_USER",
+                [email],  # Use 'email' instead of 'self.email'
+                fail_silently=False,
+                html_message=f"<p>Your OTP is </p><p>{link}</p>"  # Use 'otp_digit' instead of 'self.otp_digit'
+        )
+            return JsonResponse({'bool': True, 'msg': 'please check your email'})
+        else:
+            return JsonResponse({'bool': False,'msg':'Invalid Email!!'})
+        
+
+    
+class student_chagne_password(APIView):
+    def get(self, request, student_id):
+            return JsonResponse({'bool': False, 'msg': 'Get Method not Allowed!'})
+
+    def post(self, request, student_id):
         try:
-            password = request.POST['password']
-            teacherData = models.Teacher.objects.get(id=teacher_id)
-            teacherData.password = password
-            teacherData.save()
+            password = request.data.get('password')
+            if password is None:
+                return JsonResponse({'bool': False, 'msg': 'Password field is missing from the request!'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            student_data = models.Student.objects.get(id=student_id)
+            student_data.password = password
+            student_data.save()
             return JsonResponse({'bool': True, 'msg': 'Password has been changed!'})
-        except models.Teacher.DoesNotExist:
-            return JsonResponse({'bool': False, 'msg': 'Teacher not found!'})
-        except KeyError:
-            return JsonResponse({'bool': False, 'msg': 'Password field is missing from the request!'})
-    else:
-        return JsonResponse({'bool': False, 'msg': 'Invalid request method!'})
+        
+        except models.Student.DoesNotExist:
+            return JsonResponse({'bool': False, 'msg': 'Student not found!'}, status=status.HTTP_404_NOT_FOUND)
 
     
 #end Teacher

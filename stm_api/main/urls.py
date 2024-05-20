@@ -8,14 +8,14 @@ urlpatterns = [
     path('teacher/',views.TeacherList.as_view()),
     path('teacher/<int:pk>/',views.TeacherDetail.as_view()),
     path('teacher/dashboard/<int:pk>/',views.TeacherDashboard.as_view()),
-    path('teacher/change-password/<int:teacher_id>/',views.teacher_change_password),
+    path('teacher/change-password/<int:teacher_id>/',views.teacher_change_password.as_view()),
     path('teacher-login/',views.teacher_login.as_view()),#
     path('popular-teachers/',views.TeacherList.as_view()),
     path('verify-teacher/<int:teacher_id>/',views.verify_teacher_via_otp.as_view()),
     path('teacher-courses/<int:teacher_id>',views.TeacherCourseList.as_view()),
     path('teacher-courses-detail/<int:pk>',views.TeacherCourseDetail.as_view()),
     path('teacher-forgot-password/',views.teacher_forgot_password.as_view()),
-    path('teacher-change-password/<int:teacher_id>/',views.teacher_change_password),
+    path('teacher-change-password/<int:teacher_id>/',views.teacher_change_password.as_view()),
 
 #Courses-
     path('course/',views.CourseList.as_view()),
@@ -47,6 +47,10 @@ urlpatterns = [
     path('fatch-favorite-status/<int:student_id>/<int:course_id>',views.fatch_favorite_status),
     path('fatch-favorite-courses/<int:student_id>',views.StudentFavoriteCourseList.as_view()),
     path('student/fetch-all-notification/<int:student_id>/',views.NotificationList.as_view()),
+    path('student-forgot-password/',views.student_forgot_password.as_view()),
+    path('student-change-password/<int:student_id>/',views.student_chagne_password.as_view()),
+
+
 
 # Assignments   
     path('student-assignment/<int:student_id>/<int:teacher_id>',views.AssignmentList.as_view()),
