@@ -13,10 +13,10 @@ from django.conf import settings
 class Teacher(models.Model):
     id = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=100)
-    email = models.CharField(max_length=100)
+    email = models.CharField(max_length=100,unique=True)
     password=models.CharField(max_length=100,blank=True,null=True)
     qualification=models.CharField(max_length=100)
-    mobile_no = models.CharField(max_length=20)
+    mobile_no = models.CharField(max_length=20,unique=True)
     profile_img=models.ImageField(upload_to='teahcer_profile_imgs/',null=True)
     skills=models.TextField()
     verify_status=models.BooleanField(default=False)
