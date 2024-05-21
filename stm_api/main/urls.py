@@ -48,7 +48,7 @@ urlpatterns = [
     path('fatch-favorite-courses/<int:student_id>',views.StudentFavoriteCourseList.as_view()),
     path('student/fetch-all-notification/<int:student_id>/',views.NotificationList.as_view()),
     path('student-forgot-password/',views.student_forgot_password.as_view()),
-    path('student-change-password/<int:student_id>/',views.student_chagne_password.as_view()),
+    path('student-change-password/<int:student_id>/',views.student_changne_password.as_view()),
 
 
 
@@ -90,4 +90,6 @@ urlpatterns = [
     path('fatch-rating-status/<int:student_id>/<int:course_id>',views.fatch_rating_status),
     path('save-notification/',views.NotificationList.as_view()),
     path('category/',views.CategoryList.as_view()),
+    path('send-message/<int:teacher_id>/<int:student_id>',views.save_teacher_student_msg.as_view()),
+
 ]

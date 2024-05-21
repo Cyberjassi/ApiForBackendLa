@@ -452,7 +452,7 @@ class student_forgot_password(APIView):
         
 
     
-class student_chagne_password(APIView):
+class student_changne_password(APIView):
     def get(self, request, student_id):
             return JsonResponse({'bool': False, 'msg': 'Get Method not Allowed!'})
 
@@ -922,3 +922,30 @@ def fetch_quiz_attempt_status(request,quiz_id,student_id):
       return JsonResponse({'bool':True})
    else:
       return JsonResponse({'bool':False})
+   
+# send massage functionality-
+class save_teacher_student_msg(APIView):
+    @csrf_exempt
+    def post(self, request, teacher_id, student_id):
+        try:
+            teacher = models.Teacher.objects.get(id=teacher_id)
+            student = models.Student.objects.get(id=student_id)
+            msg_text = request.data.get('msg_text')  # Using request.data instead of request.POST for DRF
+            msg_from = request.data.get('msg_from')
+
+            print("teacher",teacher,"student",student,"msg_text",msg_text,"msg_from",msg_from)
+            
+            # Creating the message instance
+            msg_instance = models.TeacherStudentChat.objects.create(
+                teacher=teacher,
+                student=student,
+                msg_text=msg_text,
+                msg_from=msg_from,
+            )
+            
+            return JsonResponse({'bool': True, 'msg': 'Message has been saved'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse({'bool': False, 'msg': 'Oops... Some Error Occurred!', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        
