@@ -269,3 +269,14 @@ class AttempQuizSerializer(serializers.ModelSerializer):
         self.Meta.depth = 0
         if request and request.method == 'GET':
             self.Meta.depth = 2
+
+
+class TeacherStudentChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=models.TeacherStudentChat
+        fields = ['id','teacher','student','msg_from','msg_text','msg_time']
+    
+    def to_representation(self, instance):
+        representation = super(TeacherStudentChatSerializer,self).to_representation(instance)
+        representation['msg_time'] = instance.msg_time.strftime('%Y-%m-%d %H:%M')
+        return representation

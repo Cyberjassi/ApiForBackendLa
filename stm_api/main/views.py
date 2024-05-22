@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.views import APIView
 from . import models
-from .serializers import TecherSerializer,CategorySerializer,StudentSerializer,CourseSerializer,ChapterSerializer,StudentCourseEnrollSerializer,CourseRatingSerializer,TeacherDashboardSerializer,StudentFavoriteCourseSerializer,StudentAssignmentSerializer,StudentDashboardSerializer,NotificationSerializer,QuizSerializer,QuestionSerializer,CourseQuizSerializer,AttempQuizSerializer,StudyMaterialSerializer,FaqSerializer,FlatPagesSerializer,ContactSerializer
+from .serializers import TecherSerializer,CategorySerializer,StudentSerializer,CourseSerializer,ChapterSerializer,StudentCourseEnrollSerializer,CourseRatingSerializer,TeacherDashboardSerializer,StudentFavoriteCourseSerializer,StudentAssignmentSerializer,StudentDashboardSerializer,NotificationSerializer,QuizSerializer,QuestionSerializer,CourseQuizSerializer,AttempQuizSerializer,StudyMaterialSerializer,FaqSerializer,FlatPagesSerializer,ContactSerializer,TeacherStudentChatSerializer
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import permissions
@@ -925,7 +925,6 @@ def fetch_quiz_attempt_status(request,quiz_id,student_id):
    
 # send massage functionality-
 class save_teacher_student_msg(APIView):
-    @csrf_exempt
     def post(self, request, teacher_id, student_id):
         try:
             teacher = models.Teacher.objects.get(id=teacher_id)
@@ -943,9 +942,42 @@ class save_teacher_student_msg(APIView):
                 msg_from=msg_from,
             )
             
-            return JsonResponse({'bool': True, 'msg': 'Message has been saved'}, status=status.HTTP_200_OK)
+            return JsonResponse({'bool': True, 'msg': 'Message has been Send'}, status=status.HTTP_200_OK)
         except Exception as e:
             return JsonResponse({'bool': False, 'msg': 'Oops... Some Error Occurred!', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+class save_teacher_student_msg(APIView):
+    def post(self, request, teacher_id, student_id):
+        try:
+            teacher = models.Teacher.objects.get(id=teacher_id)
+            student = models.Student.objects.get(id=student_id)
+            msg_text = request.data.get('msg_text')  # Using request.data instead of request.POST for DRF
+            msg_from = request.data.get('msg_from')
+
+            print("teacher",teacher,"student",student,"msg_text",msg_text,"msg_from",msg_from)
+            
+            # Creating the message instance
+            msg_instance = models.TeacherStudentChat.objects.create(
+                teacher=teacher,
+                student=student,
+                msg_text=msg_text,
+                msg_from=msg_from,
+            )
+            
+            return JsonResponse({'bool': True, 'msg': 'Message has been Send'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse({'bool': False, 'msg': 'Oops... Some Error Occurred!', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+class MessageList(generics.ListAPIView):
+   queryset=models.TeacherStudentChat.objects.all()
+   serializer_class=TeacherStudentChatSerializer
+
+   def get_queryset(self):
+      teacher_id = self.kwargs['teacher_id']
+      student_id = self.kwargs['student_id']
+      teacher = models.Teacher.objects.get(pk=teacher_id)
+      student = models.Student.objects.get(pk=student_id)
+      return models.TeacherStudentChat.objects.filter(teacher=teacher,student=student).exclude(msg_text='')
 
 
         

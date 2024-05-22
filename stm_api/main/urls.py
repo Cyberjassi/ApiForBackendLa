@@ -91,5 +91,6 @@ urlpatterns = [
     path('save-notification/',views.NotificationList.as_view()),
     path('category/',views.CategoryList.as_view()),
     path('send-message/<int:teacher_id>/<int:student_id>',views.save_teacher_student_msg.as_view()),
+    path('get-messages/<int:teacher_id>/<int:student_id>',views.MessageList.as_view()),
 
 ]
