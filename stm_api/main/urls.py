@@ -49,7 +49,7 @@ urlpatterns = [
     path('student/fetch-all-notification/<int:student_id>/',views.NotificationList.as_view()),
     path('student-forgot-password/',views.student_forgot_password.as_view()),
     path('student-change-password/<int:student_id>/',views.student_changne_password.as_view()),
-
+    path('fatch-my-teachers/<int:student_id>',views.MyTeacherList.as_view()),
 
 
 # Assignments   

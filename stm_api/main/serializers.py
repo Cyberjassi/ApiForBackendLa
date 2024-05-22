@@ -59,6 +59,13 @@ class CourseSerializer(serializers.ModelSerializer):
         model = models.Course
         fields = ['id', 'category', 'teacher', 'title', 'description', 'featured_img', 'techs','course_chapter','related_videos','tech_list','total_enrolled_students','course_rating']
 
+    def __init__(self,*args,**kwargs):
+        super(CourseSerializer,self).__init__(*args,**kwargs)
+        request=self.context.get('request')
+        self.Meta.depth=0
+        if request and request.method == 'GET':
+            self.Meta.depth=1
+
 class CourseRatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.CourseRating
