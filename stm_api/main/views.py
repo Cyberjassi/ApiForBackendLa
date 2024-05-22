@@ -946,27 +946,6 @@ class save_teacher_student_msg(APIView):
         except Exception as e:
             return JsonResponse({'bool': False, 'msg': 'Oops... Some Error Occurred!', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
-class save_teacher_student_msg(APIView):
-    def post(self, request, teacher_id, student_id):
-        try:
-            teacher = models.Teacher.objects.get(id=teacher_id)
-            student = models.Student.objects.get(id=student_id)
-            msg_text = request.data.get('msg_text')  # Using request.data instead of request.POST for DRF
-            msg_from = request.data.get('msg_from')
-
-            print("teacher",teacher,"student",student,"msg_text",msg_text,"msg_from",msg_from)
-            
-            # Creating the message instance
-            msg_instance = models.TeacherStudentChat.objects.create(
-                teacher=teacher,
-                student=student,
-                msg_text=msg_text,
-                msg_from=msg_from,
-            )
-            
-            return JsonResponse({'bool': True, 'msg': 'Message has been Send'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return JsonResponse({'bool': False, 'msg': 'Oops... Some Error Occurred!', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 class MessageList(generics.ListAPIView):
    queryset=models.TeacherStudentChat.objects.all()
@@ -978,6 +957,27 @@ class MessageList(generics.ListAPIView):
       teacher = models.Teacher.objects.get(pk=teacher_id)
       student = models.Student.objects.get(pk=student_id)
       return models.TeacherStudentChat.objects.filter(teacher=teacher,student=student).exclude(msg_text='')
+   
+
+class save_teacher_student_group_msg(APIView):
+    def post(self, request, teacher_id):
+        try:
+            teacher = models.Teacher.objects.get(id=teacher_id)
+            msg_text = request.data.get('msg_text')  # Using request.data instead of request.POST for DRF
+            msg_from = request.data.get('msg_from')
+
+            enrolledList=models.StudentCourseEnrollment.objects.filter(course__teacher=teacher).distinct()
+            for enrolled in enrolledList:
+                msg_instance = models.TeacherStudentChat.objects.create(
+                    teacher=teacher,
+                    student=enrolled.student,
+                    msg_text=msg_text,
+                    msg_from=msg_from,
+                )
+            
+            return JsonResponse({'bool': True, 'msg': 'Message has been Send'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse({'bool': False, 'msg': 'Oops... Some Error Occurred!', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
         
