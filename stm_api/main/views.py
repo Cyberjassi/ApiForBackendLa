@@ -991,4 +991,4 @@ class save_teacher_student_group_msg(APIView):
             return JsonResponse({'bool': False, 'msg': 'Oops... Some Error Occurred!', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-        
+

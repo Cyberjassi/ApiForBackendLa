@@ -1,9 +1,9 @@
 from django.urls import path
 from . import views
 # from .views import TeacherLoginApiView
+from .api_razorpay import RazorpayOrderAPIView, TransactionAPIView
 
 urlpatterns = [
-
 #Teachers-
     path('teacher/',views.TeacherList.as_view()),
     path('teacher/<int:pk>/',views.TeacherDetail.as_view()),
@@ -96,5 +96,13 @@ urlpatterns = [
     path('get-messages/<int:teacher_id>/<int:student_id>',views.MessageList.as_view()),
     path('send-group-message/<int:teacher_id>',views.save_teacher_student_group_msg.as_view()),
 
-
+# payment-
+    path("order/create/", 
+        RazorpayOrderAPIView.as_view(), 
+        name="razorpay-create-order-api"
+    ),
+    path("order/complete/", 
+        TransactionAPIView.as_view(), 
+        name="razorpay-complete-order-api"
+    ),
 ]

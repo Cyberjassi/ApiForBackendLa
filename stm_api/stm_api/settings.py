@@ -39,6 +39,7 @@ SITE_ID = 1
 
 INSTALLED_APPS = [
     'corsheaders',
+    # 'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -196,3 +197,13 @@ CLOUDINARY_STORAGE = {
 }
 
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+
+JAZZMIN_SETTINGS={
+    "site_title": "Learning Hotspot",
+    "site_header": "Learning Hotspot",
+}
+
+# razorpay-
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")

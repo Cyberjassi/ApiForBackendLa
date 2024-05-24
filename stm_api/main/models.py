@@ -22,6 +22,11 @@ class Teacher(models.Model):
     verify_status=models.BooleanField(default=False)
     otp_digit=models.CharField(max_length=20,null=True)
 
+    facebook_url=models.URLField(null=True)
+    twitter_url=models.URLField(null=True)
+    instagram_url=models.URLField(null=True)
+
+
     #for shows in panel Table name
     class Meta:
         verbose_name_plural = "1. Teachers"
@@ -79,7 +84,7 @@ class Course(models.Model):
     featured_img=models.ImageField(upload_to='course_imgs/',null=True)
     techs=models.TextField(null=True)
     course_views=models.BigIntegerField(default=0)
-    
+    price = models.IntegerField(null=True)
     class Meta:
         verbose_name_plural = "3. Course"
 
@@ -354,3 +359,13 @@ class TeacherStudentChat(models.Model):
 
     class Meta:
         verbose_name_plural = "18. Teacher Student Messages"
+
+class Transaction(models.Model):
+    payment_id = models.CharField(max_length=200, verbose_name="Payment ID")
+    order_id = models.CharField(max_length=200, verbose_name="Order ID")
+    signature = models.CharField(max_length=500, verbose_name="Signature", blank=True, null=True)
+    amount = models.IntegerField(verbose_name="Amount")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return str(self.id)

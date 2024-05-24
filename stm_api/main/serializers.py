@@ -57,7 +57,7 @@ class TeacherDashboardSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Course
-        fields = ['id', 'category', 'teacher', 'title', 'description', 'featured_img', 'techs','course_chapter','related_videos','tech_list','total_enrolled_students','course_rating']
+        fields = ['id', 'category', 'teacher', 'title', 'description', 'featured_img', 'techs','course_chapter','related_videos','tech_list','total_enrolled_students','course_rating','price']
 
     def __init__(self,*args,**kwargs):
         super(CourseSerializer,self).__init__(*args,**kwargs)
