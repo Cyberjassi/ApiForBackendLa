@@ -13,3 +13,6 @@ urlpatterns = [
     #it is responstible for give login functionality in our rest_framework page
     # path('api-auth/',include('rest_framework.urls'))
 ]+static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
+
+
+# for the media root\
