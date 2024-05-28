@@ -3,6 +3,9 @@ from django.core import serializers
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
+# from cloudinary_storage.storage import MediaCloudinaryStorage
+from cloudinary_storage.storage import VideoMediaCloudinaryStorage
+from cloudinary_storage.validators import validate_video
 # from Teacher.models import Teacher
 
 
@@ -117,7 +120,7 @@ class Chapter(models.Model):
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="course_chapter")
     title=models.CharField(max_length=150)
     description=models.TextField()
-    video=models.FileField(upload_to='chapter_videos/',null=True)
+    video=models.FileField(storage=VideoMediaCloudinaryStorage(),validators=[validate_video],upload_to='chapter_videos/',null=True)
     video_duration=models.DateTimeField(auto_now_add=True,null=True)
     remarks=models.TextField(null=True)
     
