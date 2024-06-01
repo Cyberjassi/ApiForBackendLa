@@ -1,19 +1,22 @@
 from django.db import models
-from django.core import serializers
-from main import models
 
 
 class Teacher(models.Model):
     id = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=100)
-    email = models.CharField(max_length=100)
-    password=models.CharField(max_length=100)
+    email = models.CharField(max_length=100,unique=True)
+    password=models.CharField(max_length=100,blank=True,null=True)
     qualification=models.CharField(max_length=100)
-    mobile_no = models.CharField(max_length=20)
+    mobile_no = models.CharField(max_length=20,unique=True)
     profile_img=models.ImageField(upload_to='teahcer_profile_imgs/',null=True)
     skills=models.TextField()
     verify_status=models.BooleanField(default=False)
     otp_digit=models.CharField(max_length=20,null=True)
+
+    facebook_url=models.URLField(null=True)
+    twitter_url=models.URLField(null=True)
+    instagram_url=models.URLField(null=True)
+
 
     #for shows in panel Table name
     class Meta:
@@ -21,7 +24,7 @@ class Teacher(models.Model):
 
     def __str__(self) -> str:
         return self.full_name
-    
+    # becuse want to show all skill in ui
     def skill_list(self):
         skill_list=self.skills.split(',')
         return skill_list
@@ -37,4 +40,3 @@ class Teacher(models.Model):
     def total_teacher_students(self):
         total_students = models.StudentCourseEnrollment.objects.filter(course__teacher=self).count()
         return total_students
-

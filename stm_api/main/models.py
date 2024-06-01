@@ -6,13 +6,11 @@ from django.conf import settings
 # from cloudinary_storage.storage import MediaCloudinaryStorage
 from cloudinary_storage.storage import VideoMediaCloudinaryStorage
 from cloudinary_storage.validators import validate_video
-# from Teacher.models import Teacher
 
 
 
-#
-#
-#
+
+# %t---
 class Teacher(models.Model):
     id = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=100)
@@ -132,7 +130,8 @@ class Chapter(models.Model):
     
 
 
-
+#Student-
+# %s---
 class Student(models.Model):
     id = models.AutoField(primary_key=True)
     full_name=models.CharField(max_length=100)
@@ -190,6 +189,21 @@ class StudentFavoriteCourse(models.Model):
 
     def __str__(self) -> str:
         return f"{self.course}-{self.student}"
+class StudentAssignment(models.Model):
+    teacher=models.ForeignKey(Teacher,on_delete=models.CASCADE)
+    student=models.ForeignKey(Student,on_delete=models.CASCADE,null=True)
+    title=models.CharField(max_length=200)
+    detail=models.TextField(null=True)
+    student_status = models.BooleanField(default=False,null=True)
+    add_time=models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"{self.title}"
+    
+    class Meta:
+        verbose_name_plural = "9. Student Assignments"
+    
+#student end
     
 
 class CourseRating(models.Model):
@@ -204,19 +218,6 @@ class CourseRating(models.Model):
     
     class Meta:
         verbose_name_plural = "8. Course Ratings"
-class StudentAssignment(models.Model):
-    teacher=models.ForeignKey(Teacher,on_delete=models.CASCADE)
-    student=models.ForeignKey(Student,on_delete=models.CASCADE,null=True)
-    title=models.CharField(max_length=200)
-    detail=models.TextField(null=True)
-    student_status = models.BooleanField(default=False,null=True)
-    add_time=models.DateTimeField(auto_now_add=True)
-
-    def __str__(self) -> str:
-        return f"{self.title}"
-    
-    class Meta:
-        verbose_name_plural = "9. Student Assignments"
 
 
 class Notification(models.Model):
@@ -231,76 +232,6 @@ class Notification(models.Model):
         verbose_name_plural = "10. Notification"
 
 
-class Quiz(models.Model):
-    teacher = models.ForeignKey(Teacher,on_delete=models.CASCADE,null=True)
-    title=models.CharField(max_length=200)
-    detail = models.TextField()
-    add_time=models.DateTimeField(auto_now_add=True)
-
-    def assign_status(self):
-        return CourseQuiz.objects.filter(quiz=self).count()
-    class Meta:
-        verbose_name_plural = "11. Quiz"
-
-    def __str__(self):
-        return f"{self.title}"
-
-class QuizQuestions(models.Model):
-    quiz = models.ForeignKey(Quiz,on_delete=models.CASCADE,null=True)
-    questions=models.CharField(max_length=200)
-    ans1=models.CharField(max_length=200)
-    ans2=models.CharField(max_length=200)
-    ans3=models.CharField(max_length=200)
-    ans4=models.CharField(max_length=200)
-    right_ans=models.CharField(max_length=200)
-    add_time=models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name_plural = "12. Quiz Questions"
-    
-    def __str__(self):
-        return f"{self.questions}"
-
-
-class CourseQuiz(models.Model):
-    teacher = models.ForeignKey(Teacher,on_delete=models.CASCADE,null=True)
-    course = models.ForeignKey(Course,on_delete=models.CASCADE,null=True)
-    quiz=models.ForeignKey(Quiz,on_delete=models.CASCADE,null=True)
-    add_time=models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name_plural = "13. Course Quiz"
-
-    def __str__(self):
-        return f"{self.course}-{self.quiz}"
-
-
-# class CourseQuiz(models.Model):
-#     teacher = models.ForeignKey(Teacher,on_delete=models.CASCADE,null=True)
-#     course = models.ForeignKey(Course,on_delete=models.CASCADE,null=True)
-#     quiz=models.ForeignKey(Quiz,on_delete=models.CASCADE,null=True)
-#     add_time=models.DateTimeField(auto_now_add=True)
-
-#     class Meta:
-#         verbose_name_plural = "13. Course Quiz"
-
-#     def __str__(self):
-#         return f"{self.course}-{self.quiz}"
-
-
-# quiz question by student
-class AttempQuiz(models.Model):
-    student = models.ForeignKey(Student,on_delete=models.CASCADE,null=True)
-    quiz = models.ForeignKey(Quiz,on_delete=models.CASCADE,null=True)
-    question = models.ForeignKey(QuizQuestions,on_delete=models.CASCADE,null=True)
-    right_ans = models.CharField(max_length=200,null=True)
-    add_time=models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name_plural = "14. Attempted Questions"
-
-    # def __str__(self):
-    #     return f"{self.course}-{self.quiz}"
 
 
 class StudyMaterial(models.Model):
@@ -353,6 +284,7 @@ class Contact(models.Model):
     class Meta:
         verbose_name_plural="17. Contact Queries"
 
+#%t-
 class TeacherStudentChat(models.Model):
     teacher = models.ForeignKey(Teacher,on_delete=models.CASCADE)
     student = models.ForeignKey(Student,on_delete=models.CASCADE)

@@ -1,35 +1,3 @@
-from django.shortcuts import render
-from django.contrib.flatpages.models import FlatPage
-
-from django.http import Http404, JsonResponse,HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-
-from rest_framework.views import APIView
-from . import models
-from .serializers import TecherSerializer,CategorySerializer,StudentSerializer,CourseSerializer,ChapterSerializer,StudentCourseEnrollSerializer,CourseRatingSerializer,TeacherDashboardSerializer,StudentFavoriteCourseSerializer,StudentAssignmentSerializer,StudentDashboardSerializer,NotificationSerializer,QuizSerializer,QuestionSerializer,CourseQuizSerializer,AttempQuizSerializer,StudyMaterialSerializer,FaqSerializer,FlatPagesSerializer,ContactSerializer
-from rest_framework.response import Response
-from rest_framework import generics
-from rest_framework import permissions
-from rest_framework.pagination import PageNumberPagination
-import json
-from rest_framework.exceptions import AuthenticationFailed
-
-from django.utils.decorators import method_decorator
-from json.decoder import JSONDecodeError
-from django.core.exceptions import ObjectDoesNotExist
-
-from rest_framework import status
-from django.db.models import Q
-
-# jwt--
-from django.contrib.auth import authenticate
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
-
-# import coustom permisttion
-from .permission import TeacherStudent
-
-
 class TeacherList(APIView):
     pagination_class = MyPagination  # Assuming MyPagination is your custom pagination class
 
@@ -67,7 +35,6 @@ class TeacherList(APIView):
    #    if 'popular' in self.request.GET:
    #       sql="SELECT *,COUNT(c.id) as total_course FROM main_teacher as t INNER JOIN main_course as c ON c.teacher_id=t.id GROUP BY t.id ORDER BY total_course desc"
    #       return models.Teacher.objects.raw(sql)
-
 class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
    queryset=models.Teacher.objects.all()
    serializer_class=TecherSerializer
@@ -77,7 +44,7 @@ class TeacherDashboard(generics.RetrieveAPIView):
    queryset = models.Teacher.objects.all()
    serializer_class=TeacherDashboardSerializer
 
-#specific techer course-
+#mt
 class TeacherCourseList(generics.ListCreateAPIView):
     serializer_class = CourseSerializer
    #  it is use for overide course so that we car retriewe specific course according to teacher id
@@ -125,12 +92,12 @@ class TeacherCourseDetail(APIView):
 # class TeacherCourseDetail(generics.RetrieveUpdateDestroyAPIView):
 #     queryset = models.Course.objects.all()
 #     serializer_class = CourseSerializer
-   
-
 
 # it responsible for handle frontened request means if login information is match then it response True otherwise False
 
 # @method_decorator(csrf_exempt, name='dispatch')
+
+# change and will itself-
 class teacher_login(APIView):
     def post(self, request):
      
@@ -147,45 +114,65 @@ class teacher_login(APIView):
                 teacher_data = None
 
             if teacher_data:
-                token = get_tokens_for_user(teacher_data)
-                return JsonResponse({'token':token,'bool': True, 'teacher_id': teacher_data.id, 'hii': 'hello'})
+                if not teacher_data.verify_status:
+                    return JsonResponse({'bool': False, 'msg': 'Accuount is not verified'})
+                else:
+                    token = get_tokens_for_user(teacher_data)
+                    return JsonResponse({'token':token,'bool': True, 'teacher_id': teacher_data.id})
             else:
-                return JsonResponse({'bool': False})
+                return JsonResponse({'bool': False,'msg':'Invalied Email or password'})
         except JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON data'}, status=400)
 
     def get(self, request):
         return JsonResponse({'error': 'GET method not allowed'}, status=405)
-
-
-@csrf_exempt       
-def verify_teacher_via_otp(request,teacher_id):
-   otp_digit=request.POST.get('otp_digit')
-   verify = models.Teacher.objects.filter(id=teacher_id,otp_digit=otp_digit).first()
-   if verify:
-      models.Teacher.objects.filter(id=teacher_id,otp_digit=otp_digit).update(verify_status=True)
-      return JsonResponse({'bool':True,'teacher_id':verify.id})
-   else:
-      return JsonResponse({'bool':False})
-   
-
-@csrf_exempt
-def teacher_change_password(request,teacher_id):
- 
-    password=request.POST['password']
-    try:
-        teacherData = models.Teacher.objects.get(id=teacher_id)
-    except models.Teacher.DoesNotExist:
-       teacherData=None
-    if teacherData:
-       models.Teacher.objects.filter(id=teacher_id).update(password=password)
-       return JsonResponse({'bool':True})
-    else:
-       return JsonResponse({'bool':False})
     
+     
+class verify_teacher_via_otp(APIView):
+    def post(self, request, teacher_id):
+        otp_digit = request.data.get('otp_digit')
+        print(otp_digit)  # Using request.data for POST data
+        verify = models.Teacher.objects.filter(id=teacher_id, otp_digit=otp_digit).first()
+        if verify:
+            models.Teacher.objects.filter(id=teacher_id, otp_digit=otp_digit).update(verify_status=True)
+            return JsonResponse({'bool': True, 'teacher_id': verify.id})
+        else:
+            return JsonResponse({'bool': False})
+        
+class teacher_forgot_password(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        print(email)  # Using request.data for POST data
+        verify = models.Teacher.objects.filter(email=email).first()
+        if verify:
+            link=f"http://localhost:3000/teacher-change-password/{verify.id}/"
+            send_mail(
+                "Change Password",
+                "Please Verify Your Account",
+                "settings.EMAIL_HOST_USER",
+                [email],  # Use 'email' instead of 'self.email'
+                fail_silently=False,
+                html_message=f"<p>Your OTP is </p><p>{link}</p>"  # Use 'otp_digit' instead of 'self.otp_digit'
+        )
+            return JsonResponse({'bool': True, 'msg': 'please check your email'})
+        else:
+            return JsonResponse({'bool': False,'msg':'Invalid Email!!'})
+        
+class teacher_change_password(APIView):
+    def get(self, request, teacher_id):
+            return JsonResponse({'bool': False, 'msg': 'Get Method not Allowed!'})
 
-    
-
-
-
+    def post(self, request, teacher_id):
+        try:
+            password = request.data.get('password')
+            if password is None:
+                return JsonResponse({'bool': False, 'msg': 'Password field is missing from the request!'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            teacher_data = models.Teacher.objects.get(id=teacher_id)
+            teacher_data.password = password
+            teacher_data.save()
+            return JsonResponse({'bool': True, 'msg': 'Password has been changed!'})
+        
+        except models.Teacher.DoesNotExist:
+            return JsonResponse({'bool': False, 'msg': 'Teacher not found!'}, status=status.HTTP_404_NOT_FOUND)
 
