@@ -623,7 +623,9 @@ class MyTeacherList(generics.ListAPIView):
    def get_queryset(self):
     if 'student_id' in self.kwargs: 
        student_id=self.kwargs['student_id']
-       sql = f"SELECT t.id AS id, t.full_name FROM main_course AS c JOIN main_studentcourseenrollment AS e ON e.course_id = c.id JOIN main_teacher AS t ON c.teacher_id = t.id WHERE e.student_id = {student_id} GROUP BY t.id, t.full_name;"
+
+       sql = f"SELECT c.id, t.full_name FROM main_course AS c JOIN main_studentcourseenrollment AS e ON e.course_id = c.id JOIN main_teacher AS t ON c.teacher_id = t.id WHERE e.student_id = {student_id} GROUP BY c.id, t.full_name"
+
        qs=models.Course.objects.raw(sql)
        return qs
 
