@@ -624,7 +624,10 @@ class MyTeacherList(generics.ListAPIView):
     if 'student_id' in self.kwargs: 
        student_id=self.kwargs['student_id']
 
-       sql = f"SELECT c.id, t.full_name FROM main_course AS c JOIN main_studentcourseenrollment AS e ON e.course_id = c.id JOIN main_teacher AS t ON c.teacher_id = t.id WHERE e.student_id = {student_id} GROUP BY c.id, t.full_name"
+       sql = f"SELECT DISTINCT ON (t.full_name) c.id, t.full_name FROM main_course AS c JOIN main_studentcourseenrollment AS e ON e.course_id = c.id JOIN main_teacher AS t ON c.teacher_id = t.id WHERE e.student_id = {student_id} ORDER BY t.full_name, c.id"
+
+ 
+
 
        qs=models.Course.objects.raw(sql)
        return qs
@@ -729,10 +732,11 @@ class EnrolledStudentList(generics.ListCreateAPIView):
         course = models.Course.objects.get(pk=course_id)
         return models.StudentCourseEnrollment.objects.filter(course=course)
     elif 'teacher_id' in self.kwargs: 
-       teacher_id=self.kwargs['teacher_id']
-       teacher = models.Teacher.objects.get(pk=teacher_id)
-       return models.StudentCourseEnrollment.objects.filter(course__teacher=teacher).distinct()
-       return models.StudentCourseEnrollment.objects.filter(course__teacher=teacher).distinct()
+        teacher_id = self.kwargs['teacher_id']
+        teacher = models.Teacher.objects.get(pk=teacher_id)
+        student_ids = models.StudentCourseEnrollment.objects.filter(course__teacher=teacher).distinct().values('student_id')
+        return models.StudentCourseEnrollment.objects.filter(id__in=student_ids)
+
     elif 'student_id' in self.kwargs: 
        student_id=self.kwargs['student_id']
        student = models.Student.objects.get(pk=student_id)
