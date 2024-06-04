@@ -115,14 +115,17 @@ class TeacherDashboard(generics.RetrieveAPIView):
 
 #mt
 class TeacherCourseList(generics.ListCreateAPIView):
+    # permission_classes = [permissions.IsAuthenticated]
     serializer_class = CourseSerializer
    #  it is use for overide course so that we car retriewe specific course according to teacher id
     def get_queryset(self):
         # Retrieve teacher ID from URL kwargs
         teacher_id = self.kwargs['teacher_id']
+        print('teacher id -> ',teacher_id)
         
         # Retrieve teacher object based on ID
         teacher = models.Teacher.objects.get(pk=teacher_id)
+        print('teacher ',teacher)
         
         # Filter courses by teacher
         return models.Course.objects.filter(teacher=teacher)
@@ -255,6 +258,8 @@ class CategoryList(generics.ListCreateAPIView):
 
 class CourseList(APIView):
    #  permission_classes=[TeacherStudent]
+    # permission_classes = [permissions.IsAuthenticated]
+
     pagination_class = MyPagination
     def get(self, request):
         print("This is kwargs",request.GET.get('role'))
@@ -288,15 +293,15 @@ class CourseList(APIView):
             search = self.request.GET['searchString']
             queryset = models.Course.objects.filter(Q(techs__icontains=search)|Q(title__icontains=search))
         elif 'studentId' in self.request.GET:
-           student_id=self.request.GET['studentId']
-           student = models.Student.objects.get(pk=student_id)
-           print("this is student id ;;;;;;;",student)
-           queries=[Q(techs__iendwith=value) for value in student.interested_categories]
-           query=queries.pop()
-           for item in queries:
-              query |= item
-           qs = models.Course.objects.filter(query)
-           return qs
+            student_id = self.request.GET['studentId']
+            print("this is my student id  ",student_id , "type of student id",type(student_id))
+            student = models.Student.objects.get(pk=student_id)
+            queries = [Q(techs__iendswith=value) for value in student.interested_categories]
+            query = queries.pop()
+            for item in queries:
+                query |= item
+            qs = models.Course.objects.filter(query)
+            return qs
         return queryset   
     def post(self, request):
         serializer = CourseSerializer(data=request.data)

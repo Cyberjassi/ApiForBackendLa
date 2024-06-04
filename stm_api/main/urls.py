@@ -25,7 +25,7 @@ urlpatterns = [
     path('update-view/<int:course_id>',views.update_view),
     path('course-chapters/<int:course_id>',views.CourseChapterList.as_view()),
     path('chapter/',views.ChapterList.as_view()),
-    path('fatch-recommended-courses/<int:studentId>',views.CourseList.as_view()),
+    path('fatch-recommended-courses/',views.CourseList.as_view()),
     path('course-rating/',views.CourseRatingList.as_view()),
     path('student-testimonial/',views.CourseRatingList.as_view()),
 
