@@ -761,8 +761,25 @@ class CourseRatingList(generics.ListCreateAPIView):
 
    def get_queryset(self):
       if 'popular' in self.request.GET:
-         sql = "SELECT c.id,cr.course_id,cr.student_id,cr.rating, cr.reviews, cr.review_time, AVG(cr.rating) AS avg_rating FROM main_courserating AS cr INNER JOIN main_course AS c ON cr.course_id = c.id GROUP BY c.id,cr.course_id,cr.student_id ,cr.rating, cr.reviews, cr.review_time ORDER BY avg_rating DESC LIMIT 4"
-         return models.CourseRating.objects.raw(sql)
+        sql = """
+    WITH ranked_courses AS (
+        SELECT cr.id, 
+               cr.course_id, 
+               cr.student_id, 
+               cr.rating, 
+               cr.reviews, 
+               cr.review_time,
+               SUM(cr.rating) OVER (PARTITION BY cr.course_id) AS calculate_total_rating,
+               ROW_NUMBER() OVER (PARTITION BY cr.course_id ORDER BY cr.rating DESC) AS row_num
+        FROM main_courserating AS cr
+    )
+    SELECT id, course_id, student_id, rating, reviews, review_time, calculate_total_rating
+    FROM ranked_courses
+    WHERE row_num = 1
+    ORDER BY calculate_total_rating DESC
+    LIMIT 4
+"""
+        return models.CourseRating.objects.raw(sql)
       if 'all' in self.request.GET:
          sql = "SELECT * ,AVG(cr.rating) as avg_rating FROM main_courserating as cr INNER JOIN main_course as c ON cr.course_id=c.id GROUP BY c.id ORDER BY avg_rating desc"
          return models.CourseRating.objects.raw(sql)

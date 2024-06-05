@@ -218,6 +218,15 @@ class CourseRating(models.Model):
     
     class Meta:
         verbose_name_plural = "8. Course Ratings"
+    
+    def calculate_total_rating(self):
+        """
+        Method to calculate the total rating for the specific course of this instance.
+        """
+        total_rating = CourseRating.objects.filter(course=self.course).aggregate(models.Sum('rating'))
+        return total_rating['rating__sum'] if total_rating['rating__sum'] else 0
+
+    
 
 
 class Notification(models.Model):
