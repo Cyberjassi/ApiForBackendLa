@@ -81,7 +81,7 @@ class CourseSerializer(serializers.ModelSerializer):
 class CourseRatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.CourseRating
-        fields =  ['id','course','student','rating','reviews','review_time','calculate_total_rating']
+        fields =  ['id','course','student','rating','reviews','review_time','calculate_total_rating','average_rating']
     #if we only want to see data that is get then we assgin depth =1 but we need post request then we need depth 1
     def __init__(self,*args,**kwargs):
         super(CourseRatingSerializer,self).__init__(*args,**kwargs)

@@ -6,6 +6,7 @@ from django.conf import settings
 # from cloudinary_storage.storage import MediaCloudinaryStorage
 from cloudinary_storage.storage import VideoMediaCloudinaryStorage
 from cloudinary_storage.validators import validate_video
+from django.db.models import Avg
 
 
 
@@ -216,15 +217,24 @@ class CourseRating(models.Model):
     def __str__(self) -> str:
         return f"{self.course}-{self.student}-{self.rating}"
     
-    class Meta:
-        verbose_name_plural = "8. Course Ratings"
-    
     def calculate_total_rating(self):
         """
         Method to calculate the total rating for the specific course of this instance.
         """
         total_rating = CourseRating.objects.filter(course=self.course).aggregate(models.Sum('rating'))
         return total_rating['rating__sum'] if total_rating['rating__sum'] else 0
+    
+    def average_rating(self):
+        """
+        Method to calculate the average rating for the specific course of this instance.
+        """
+        average_rating = CourseRating.objects.filter(course=self.course).aggregate(Avg('rating'))
+        return average_rating['rating__avg'] if average_rating['rating__avg'] else 0
+    class Meta:
+        verbose_name_plural = "8. Course Ratings"
+    
+    
+
 
     
 
