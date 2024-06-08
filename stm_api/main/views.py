@@ -26,20 +26,27 @@ from django.core.mail import send_mail
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+import jwt
 
 
 # import coustom permisttion
-from .permission import TeacherStudent
+from .permission import Teacher,Student
 
 # pagination class for pagination
 
 # main
-def get_tokens_for_user(user):
-  refresh = RefreshToken.for_user(user)
-  return {
-      'refresh': str(refresh),
-      'access': str(refresh.access_token),
-  }
+
+def get_tokens_for_user(user, role):
+    refresh = RefreshToken.for_user(user)
+
+    # Add role information to the access token payload
+    access_token = refresh.access_token
+    access_token.payload['role'] = role
+
+    return {
+        'refresh': str(refresh),
+        'access': str(access_token),
+    }
 
 class MyPagination(PageNumberPagination):
     page_size = 4
@@ -110,6 +117,7 @@ class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
    # permission_classes = [permissions.IsAuthenticated]
 
 class TeacherDashboard(generics.RetrieveAPIView):
+   permission_classes=[Teacher]
    queryset = models.Teacher.objects.all()
    serializer_class=TeacherDashboardSerializer
 
@@ -178,8 +186,7 @@ class teacher_login(APIView):
             email = data.get('email')
             password = data.get('password')
             print("this is teacher data",request.body)
-            # print(email, password)
-            
+            # print(email, password) 
             try:
                 teacher_data = models.Teacher.objects.filter(email=email, password=password).first()
             except ObjectDoesNotExist:
@@ -189,7 +196,7 @@ class teacher_login(APIView):
                 if not teacher_data.verify_status:
                     return JsonResponse({'bool': False, 'msg': 'Accuount is not verified'})
                 else:
-                    token = get_tokens_for_user(teacher_data)
+                    token = get_tokens_for_user(teacher_data,'teacher')
                     return JsonResponse({'token':token,'bool': True, 'teacher_id': teacher_data.id})
             else:
                 return JsonResponse({'bool': False,'msg':'Invalied Email or password'})
@@ -257,12 +264,13 @@ class CategoryList(generics.ListCreateAPIView):
    # permission_classes = [permissions.IsAuthenticated]
 
 class CourseList(APIView):
-   #  permission_classes=[TeacherStudent]
+    # permission_classes=[Teacher]
     # permission_classes = [permissions.IsAuthenticated]
 
     pagination_class = MyPagination
     def get(self, request):
-        print("This is kwargs",request.GET.get('role'))
+        # print("This is kwargs",request.GET.get('role'))
+        
         queryset = self.get_queryset()
         # new update-
         paginator = self.pagination_class()
@@ -380,14 +388,12 @@ class CourseDetailView(generics.RetrieveAPIView):
 #student---
 class student_login(APIView):
     def post(self, request):
-     
         try:
             data = json.loads(request.body)
             email = data.get('email')
             password = data.get('password')
             print("this is student data",request.body)
             # print(email, password)
-            
             try:
                 student_data = models.Student.objects.filter(email=email, password=password).first()
             except ObjectDoesNotExist:
@@ -397,7 +403,7 @@ class student_login(APIView):
                 if not student_data.verify_status:
                     return JsonResponse({'bool': False, 'msg': 'Accuount is not verified'})
                 else:
-                    token = get_tokens_for_user(student_data)
+                    token = get_tokens_for_user(student_data,'student')
                     return JsonResponse({'token':token,'bool': True, 'student_id': student_data.id})
             else:
                 return JsonResponse({'bool': False,'msg':'Invalied Email or password'})
@@ -631,9 +637,6 @@ class MyTeacherList(generics.ListAPIView):
 
        sql = f"SELECT DISTINCT ON (t.full_name) c.id, t.full_name FROM main_course AS c JOIN main_studentcourseenrollment AS e ON e.course_id = c.id JOIN main_teacher AS t ON c.teacher_id = t.id WHERE e.student_id = {student_id} ORDER BY t.full_name, c.id"
 
- 
-
-
        qs=models.Course.objects.raw(sql)
        return qs
 
@@ -737,10 +740,9 @@ class EnrolledStudentList(generics.ListCreateAPIView):
         course = models.Course.objects.get(pk=course_id)
         return models.StudentCourseEnrollment.objects.filter(course=course)
     elif 'teacher_id' in self.kwargs: 
-        teacher_id = self.kwargs['teacher_id']
-        teacher = models.Teacher.objects.get(pk=teacher_id)
-        student_ids = models.StudentCourseEnrollment.objects.filter(course__teacher=teacher).distinct().values('student_id')
-        return models.StudentCourseEnrollment.objects.filter(id__in=student_ids)
+       teacher_id=self.kwargs['teacher_id']
+       teacher = models.Teacher.objects.get(pk=teacher_id)
+       return models.StudentCourseEnrollment.objects.filter(course__teacher=teacher).distinct('student')
 
     elif 'student_id' in self.kwargs: 
        student_id=self.kwargs['student_id']
