@@ -192,12 +192,9 @@ class teacher_login(APIView):
             except ObjectDoesNotExist:
                 teacher_data = None
 
-            if teacher_data:
-                if not teacher_data.verify_status:
-                    return JsonResponse({'bool': False, 'msg': 'Accuount is not verified'})
-                else:
-                    token = get_tokens_for_user(teacher_data,'teacher')
-                    return JsonResponse({'token':token,'bool': True, 'teacher_id': teacher_data.id})
+            if teacher_data:   
+                token = get_tokens_for_user(teacher_data,'teacher')
+                return JsonResponse({'token':token,'bool': True, 'teacher_id': teacher_data.id})
             else:
                 return JsonResponse({'bool': False,'msg':'Invalied Email or password'})
         except JSONDecodeError:
@@ -214,14 +211,14 @@ class verify_teacher_via_otp(APIView):
         verify = models.Teacher.objects.filter(id=teacher_id, otp_digit=otp_digit).first()
         if verify:
             models.Teacher.objects.filter(id=teacher_id, otp_digit=otp_digit).update(verify_status=True)
-            return JsonResponse({'bool': True, 'teacher_id': verify.id})
+            token = get_tokens_for_user(verify,'student')
+            return JsonResponse({'token':token,'bool': True, 'teacher_id': verify.id})
         else:
             return JsonResponse({'bool': False})
         
 class teacher_forgot_password(APIView):
     def post(self, request):
         email = request.data.get('email')
-        print(email)  # Using request.data for POST data
         verify = models.Teacher.objects.filter(email=email).first()
         if verify:
             link=f"http://localhost:3000/teacher-change-password/{verify.id}/"
@@ -231,7 +228,7 @@ class teacher_forgot_password(APIView):
                 "settings.EMAIL_HOST_USER",
                 [email],  # Use 'email' instead of 'self.email'
                 fail_silently=False,
-                html_message=f"<p>Your OTP is </p><p>{link}</p>"  # Use 'otp_digit' instead of 'self.otp_digit'
+                html_message=f"<p>Your Password Reset Link is</p><p>{link}</p>"  # Use 'otp_digit' instead of 'self.otp_digit'
         )
             return JsonResponse({'bool': True, 'msg': 'please check your email'})
         else:
@@ -296,7 +293,9 @@ class CourseList(APIView):
             skill_name = self.request.GET['skill_name']
             teacher = self.request.GET['teacher']
             teacher = models.Teacher.objects.filter(id=teacher).first()
+            print(teacher)
             queryset = models.Course.objects.filter(techs__icontains=skill_name,teacher=teacher)
+            
         elif 'searchString' in self.request.GET:
             search = self.request.GET['searchString']
             queryset = models.Course.objects.filter(Q(techs__icontains=search)|Q(title__icontains=search))
@@ -399,12 +398,9 @@ class student_login(APIView):
             except ObjectDoesNotExist:
                 student_data = None
 
-            if student_data:
-                if not student_data.verify_status:
-                    return JsonResponse({'bool': False, 'msg': 'Accuount is not verified'})
-                else:
-                    token = get_tokens_for_user(student_data,'student')
-                    return JsonResponse({'token':token,'bool': True, 'student_id': student_data.id})
+            if student_data: 
+                token = get_tokens_for_user(student_data,'student')
+                return JsonResponse({'token':token,'bool': True, 'student_id': student_data.id})
             else:
                 return JsonResponse({'bool': False,'msg':'Invalied Email or password'})
         except JSONDecodeError:
@@ -433,20 +429,19 @@ class student_login(APIView):
 class verify_student_via_otp(APIView):
     def post(self, request, student_id):
         otp_digit = request.data.get('otp_digit')
-        print(otp_digit)  # Using request.data for POST data
+        print(otp_digit,student_id)  # Using request.data for POST data
         verify = models.Student.objects.filter(id=student_id, otp_digit=otp_digit).first()
         if verify:
             models.Student.objects.filter(id=student_id, otp_digit=otp_digit).update(verify_status=True)
-            return JsonResponse({'bool': True, 'teacher_id': verify.id})
+            token = get_tokens_for_user(verify,'student')
+            return JsonResponse({'token':token,'bool': True, 'student_id': verify.id})
         else:
             return JsonResponse({'bool': False})
         
 class student_forgot_password(APIView):
     def post(self, request):
         email = request.data.get('email')
-        print(email)  # Using request.data for POST data
         verify = models.Student.objects.filter(email=email).first()
-        print(verify.id)
         if verify:
             link=f"http://localhost:3000/student-change-password/{verify.id}/"
             send_mail(
@@ -455,7 +450,7 @@ class student_forgot_password(APIView):
                 "settings.EMAIL_HOST_USER",
                 [email],  # Use 'email' instead of 'self.email'
                 fail_silently=False,
-                html_message=f"<p>Your OTP is </p><p>{link}</p>"  # Use 'otp_digit' instead of 'self.otp_digit'
+                html_message=f"<p>Your Password Reset Link is</p><p>{link}</p>"  # Use 'otp_digit' instead of 'self.otp_digit'
         )
             return JsonResponse({'bool': True, 'msg': 'please check your email'})
         else:
@@ -470,6 +465,7 @@ class student_changne_password(APIView):
     def post(self, request, student_id):
         try:
             password = request.data.get('password')
+            print(password)
             if password is None:
                 return JsonResponse({'bool': False, 'msg': 'Password field is missing from the request!'}, status=status.HTTP_400_BAD_REQUEST)
             
