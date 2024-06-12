@@ -3,7 +3,6 @@ import jwt
 
 class Teacher(BasePermission):
     message = "You are not a teacher."
-
     def has_permission(self, request, view):
         token_string = request.headers.get('Authorization').split(' ')[1]
         try:
@@ -20,7 +19,6 @@ class Teacher(BasePermission):
 
 class Student(BasePermission):
     message = "You are not a student."
-
     def has_permission(self, request, view):
         token_string = request.headers.get('Authorization').split(' ')[1]
         try:

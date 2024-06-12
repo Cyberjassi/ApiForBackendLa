@@ -19,7 +19,6 @@ class RazorpayClient:
                     "message": e
                 }
             )
-    
     def verify_payment_signature(self, razorpay_order_id, razorpay_payment_id, razorpay_signature):
         try:
             self.verify_signature = client.utility.verify_payment_signature({

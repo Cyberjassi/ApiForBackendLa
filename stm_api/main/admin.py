@@ -42,9 +42,6 @@ class StudentAssignmentAdmin(admin.ModelAdmin):
 #     list_display=['id','notif_subject','notif_for','notifiread_status']
 
 admin.site.register(Notification)
-
-
-
 admin.site.register(StudyMaterial)
 admin.site.register(FAQ)
 admin.site.register(TeacherStudentChat)

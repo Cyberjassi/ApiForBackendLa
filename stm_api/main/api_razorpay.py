@@ -2,13 +2,10 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .razorpay_serializers import RazorpayOrderSerializer, TranscationModelSerializer
 from main.razorpay.main import RazorpayClient
-
 from rest_framework.response import Response
 rz_client = RazorpayClient()
 
 class RazorpayOrderAPIView(APIView):
-    """This API will create an order"""
-    
     def post(self, request):
         razorpay_order_serializer = RazorpayOrderSerializer(
             data=request.data
@@ -32,11 +29,7 @@ class RazorpayOrderAPIView(APIView):
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-
 class TransactionAPIView(APIView):
-    """This API will complete order and save the 
-    transaction"""
-    
     def post(self, request):
         transaction_serializer = TranscationModelSerializer(data=request.data)
         if transaction_serializer.is_valid():

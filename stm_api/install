@@ -1,8 +1,0 @@
-pip install django_cloudinary_storage
-pip install python-dotenv
-pip install django-jazzmin
-
-
-
-
-
